@@ -5,13 +5,13 @@
 // ============================================================
 
 const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
-    authDomain: "seu-projeto.firebaseapp.com",
-    projectId: "seu-projeto",
-    storageBucket: "seu-projeto.appspot.com",
-    messagingSenderId: "SEU_SENDER_ID",
-    appId: "SEU_APP_ID",
-    measurementId: "SEU_MEASUREMENT_ID"
+    apiKey: "AIzaSyAFG5kX3hmg5Ihq8Y6j8I4U4IJdXsyf0zc",
+    authDomain: "nunes-grife.firebaseapp.com",
+    projectId: "nunes-grife",
+    storageBucket: "nunes-grife.firebasestorage.app",
+    messagingSenderId: "966911069749",
+    appId: "1:966911069749:web:cfd0b53ced225117816b7c",
+    measurementId: "G-L9VJSQGM8D"
 };
 
 // ============================================================
