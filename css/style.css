@@ -1,27 +1,59 @@
-/* ===== VARIÁVEIS GLOBAIS ===== */
+/* ============================================================
+   STYLE.CSS — VARIÁVEIS GLOBAIS E ESTILOS BASE
+   Usado por: index.html e admin.html
+   ============================================================ */
+
+/* ===== TEMA ESCURO (padrão) ===== */
 :root {
-    --bg-primary: #0a0a0a;
-    --bg-secondary: #1a1a1a;
-    --text-primary: #ffffff;
-    --text-secondary: #a0a0a0;
-    --border-color: #2a2a2a;
-    --gold-pure: #d4af37;
-    --gold-dark: #b8960f;
-    --whatsapp-color: #25d366;
-    --whatsapp-hover: #128c7e;
+    --bg-primary:    #0a0a0a;
+    --bg-secondary:  #141414;
+    --bg-card:       #1a1a1a;
+    --bg-input:      #111111;
+    --text-primary:  #f0f0f0;
+    --text-secondary:#a0a0a0;
+    --text-muted:    #666666;
+    --border-color:  #2a2a2a;
+    --card-bg:       #1a1a1a;
+    --card-border:   #2a2a2a;
+    --shadow-color:  rgba(0, 0, 0, 0.6);
+    --watermark-color: rgba(212, 175, 55, 0.04);
+    --gold-pure:     #D4AF37;
+    --gold-dark:     #b8960f;
+    --whatsapp-color:#25d366;
 }
 
+/* ===== TEMA CLARO ===== */
 [data-theme="light"] {
-    --bg-primary: #f5f0eb;
-    --bg-secondary: #ffffff;
-    --text-primary: #1a1a1a;
-    --text-secondary: #555555;
-    --border-color: #e0d5c8;
+    --bg-primary:    #f5f0eb;
+    --bg-secondary:  #ffffff;
+    --bg-card:       #ffffff;
+    --bg-input:      #f0ebe4;
+    --text-primary:  #1a1a1a;
+    --text-secondary:#555555;
+    --text-muted:    #888888;
+    --border-color:  #ddd0c0;
+    --card-bg:       #ffffff;
+    --card-border:   #e0d4c0;
+    --shadow-color:  rgba(0, 0, 0, 0.12);
+    --watermark-color: rgba(212, 175, 55, 0.06);
+    --gold-pure:     #D4AF37;
+    --gold-dark:     #b8960f;
 }
 
-/* ===== RESET ===== */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-primary); color: var(--text-primary); transition: all 0.4s; }
+/* ===== RESET BÁSICO ===== */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background 0.4s ease, color 0.4s ease;
+    min-height: 100vh;
+}
 
 /* ===== MARCA D'ÁGUA ===== */
 body::before {
@@ -32,32 +64,58 @@ body::before {
     transform: translate(-50%, -50%) rotate(-25deg) scale(1.8);
     font-size: 140px;
     font-weight: 900;
-    color: rgba(212, 175, 55, 0.04);
+    color: var(--watermark-color);
     white-space: nowrap;
     pointer-events: none;
+    user-select: none;
     z-index: 0;
     letter-spacing: 25px;
+    transition: color 0.4s ease;
+}
+
+/* Admin não tem marca d'água */
+body.admin-body::before {
+    display: none;
+}
+
+.content {
+    position: relative;
+    z-index: 1;
 }
 
 /* ===== BOTÕES ===== */
 .btn-gold {
-    background: linear-gradient(135deg, #d4af37, #b8960f);
+    background: linear-gradient(135deg, #D4AF37, #b8960f);
     color: #0a0a0a;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
-.btn-gold:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3); }
+.btn-gold:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 24px rgba(212, 175, 55, 0.4);
+}
+.btn-gold:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
 
 /* ===== SCROLLBAR ===== */
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg-secondary); }
-::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #b8960f; }
 
-/* ===== RESPONSIVO ===== */
+/* ===== RESPONSIVO (marca d'água mobile) ===== */
 @media (max-width: 640px) {
-    body::before { font-size: 60px; letter-spacing: 10px; }
+    body::before {
+        font-size: 60px;
+        letter-spacing: 10px;
+    }
 }

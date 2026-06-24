@@ -1,61 +1,59 @@
 // ============================================================
-//  ADMIN - LOGIN, CRUD, CONFIGURAÇÕES (Firebase Integrado)
+//  ADMIN JS - CRUD DE PRODUTOS
+//  Depende de: firebase-config.js (carregado antes)
+//  Usado por: admin.html
 // ============================================================
 
-// ===== SWITCH TABS =====
-function switchTab(tabId) {
-    document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('.tab-btn').forEach(el => {
-        el.classList.remove('active', 'text-dourado', 'border-dourado');
-        el.classList.add('text-gray-500', 'border-transparent');
-    });
-    document.getElementById(tabId).classList.remove('hidden');
-    const btn = document.querySelector(`[onclick="switchTab('${tabId}')"]`);
-    if (btn) {
-        btn.classList.add('active', 'text-dourado', 'border-dourado');
-        btn.classList.remove('text-gray-500', 'border-transparent');
-    }
-}
-
-// ===== PRODUTOS (Admin) =====
+// ===== PRODUTOS ADMIN =====
 var produtosAdmin = [];
 
 async function carregarProdutosAdmin() {
     try {
-        const produtosFirebase = await buscarProdutosFirebase();
-        if (produtosFirebase && produtosFirebase.length > 0) {
-            produtosAdmin = produtosFirebase.map(p => ({
-                id: p.id,
-                nome: p.nome,
-                preco: p.preco,
-                imagens: p.imagens || [],
-                categoria: p.categoria || 'roupas',
-                subcategoria: p.subcategoria || '',
-                descricao: p.descricao || '',
-                ativo: p.ativo !== false
-            }));
-        } else {
-            produtosAdmin = [];
+        // Tentar Firebase primeiro
+        if (typeof buscarProdutosFirebase === 'function') {
+            var lista = await buscarProdutosFirebase();
+            if (lista && lista.length > 0) {
+                produtosAdmin = lista.map(function(p) {
+                    return {
+                        id:          p.id,
+                        nome:        p.nome        || '',
+                        preco:       parseFloat(p.preco) || 0,
+                        imagens:     p.imagens     || [],
+                        categoria:   p.categoria   || 'roupas',
+                        subcategoria:p.subcategoria|| '',
+                        descricao:   p.descricao   || '',
+                        ativo:       p.ativo !== false
+                    };
+                });
+                renderizarTabelaProdutos();
+                return;
+            }
         }
     } catch (e) {
-        console.error('Erro ao carregar produtos no admin:', e);
-        // Fallback para localStorage
-        const salvos = localStorage.getItem('produtosLoja');
-        if (salvos) {
-            try { produtosAdmin = JSON.parse(salvos); } catch (err) { produtosAdmin = []; }
-        } else {
-            produtosAdmin = [];
-        }
+        console.warn('Firebase indisponível, usando localStorage:', e.message);
+    }
+    // Fallback: localStorage
+    try {
+        var salvos = localStorage.getItem('produtosLoja');
+        produtosAdmin = salvos ? JSON.parse(salvos) : [];
+    } catch(e) {
+        produtosAdmin = [];
     }
     renderizarTabelaProdutos();
 }
 
 function renderizarTabelaProdutos() {
-    const tbody = document.getElementById('tabela-produtos-corpo');
-    const vazia = document.getElementById('mensagem-vazia');
+    var tbody = document.getElementById('tabela-produtos-corpo');
+    var vazia = document.getElementById('mensagem-vazia');
     if (!tbody) return;
-    const busca = document.getElementById('filtro-busca-produtos')?.value.toLowerCase() || '';
-    let filtrados = busca ? produtosAdmin.filter(p => p.nome.toLowerCase().includes(busca)) : produtosAdmin;
+
+    var busca = '';
+    var filtroEl = document.getElementById('filtro-busca-produtos');
+    if (filtroEl) busca = filtroEl.value.toLowerCase();
+
+    var filtrados = busca
+        ? produtosAdmin.filter(function(p) { return p.nome.toLowerCase().includes(busca); })
+        : produtosAdmin;
 
     if (filtrados.length === 0) {
         tbody.innerHTML = '';
@@ -64,212 +62,283 @@ function renderizarTabelaProdutos() {
     }
     if (vazia) vazia.classList.add('hidden');
 
-    const categoriasMap = { 
-        'roupas': 'Roupas', 
-        'calcados': 'Calçados', 
-        'acessorios': 'Acessórios', 
-        'bones': 'Bonés', 
-        'academia': 'Academia', 
-        'time': 'Camisas de Time' 
+    var mapa = {
+        'roupas':'Roupas','calcados':'Calçados','acessorios':'Acessórios',
+        'bones':'Bonés','academia':'Academia','time':'Camisas de Time'
     };
 
-    tbody.innerHTML = filtrados.map((p, index) => {
-        const imgSrc = p.imagens && p.imagens.length > 0 ? p.imagens[0] : 'https://via.placeholder.com/40/333/666?text=Erro';
-        return `
-        <tr class="hover:bg-gray-50 transition">
-            <td class="px-4 py-3"><img src="${imgSrc}" class="w-10 h-10 object-cover rounded-lg border border-gray-200" onerror="this.src='https://via.placeholder.com/40/333/666?text=Erro'"></td>
-            <td class="px-4 py-3 font-medium text-nunes text-xs">${p.nome}</td>
-            <td class="px-4 py-3 text-xs"><span class="bg-dourado/10 text-dourado px-2 py-0.5 rounded-full">${categoriasMap[p.categoria] || p.categoria}</span></td>
-            <td class="px-4 py-3 text-xs font-bold text-dourado">R$ ${p.preco.toFixed(2)}</td>
-            <td class="px-4 py-3 text-xs ${p.ativo !== false ? 'text-green-600' : 'text-red-500'}">${p.ativo !== false ? '✅ Ativo' : '❌ Inativo'}</td>
-            <td class="px-4 py-3 text-center">
-                <button onclick="editarProduto(${index})" class="text-dourado hover:text-dourado-hover mr-2 transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                <button onclick="excluirProduto(${index})" class="text-red-500 hover:text-red-700 transition" title="Excluir"><i class="fa-solid fa-trash"></i></button>
-            </td>
-        </tr>
-    `}).join('');
+    tbody.innerHTML = filtrados.map(function(p, index) {
+        var imgSrc = (p.imagens && p.imagens.length > 0)
+            ? p.imagens[0]
+            : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="%23f3f4f6"/><text x="50%" y="60%" fill="%239ca3af" text-anchor="middle" font-size="8" font-family="sans-serif">?</text></svg>';
+        var catLabel = mapa[p.categoria] || p.categoria;
+        var statusCls = p.ativo !== false ? 'text-green-600' : 'text-red-500';
+        var statusTxt = p.ativo !== false ? '✅ Ativo' : '❌ Inativo';
+        return [
+            '<tr class="hover:bg-amber-50/50 transition">',
+                '<td class="px-3 py-3">',
+                    '<img src="' + imgSrc + '" class="w-10 h-10 object-cover rounded-lg border border-gray-200">',
+                '</td>',
+                '<td class="px-3 py-3 font-semibold text-gray-800 text-xs max-w-[160px] truncate">' + p.nome + '</td>',
+                '<td class="px-3 py-3 text-xs hidden sm:table-cell">',
+                    '<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">' + catLabel + '</span>',
+                '</td>',
+                '<td class="px-3 py-3 text-xs font-bold text-yellow-600">R$ ' + p.preco.toFixed(2) + '</td>',
+                '<td class="px-3 py-3 text-xs ' + statusCls + ' hidden md:table-cell">' + statusTxt + '</td>',
+                '<td class="px-3 py-3 text-center whitespace-nowrap">',
+                    '<button onclick="editarProduto(' + index + ')" class="text-yellow-600 hover:text-yellow-800 mr-3 transition" title="Editar">',
+                        '<i class="fa-solid fa-pen-to-square"></i>',
+                    '</button>',
+                    '<button onclick="excluirProduto(' + index + ')" class="text-red-500 hover:text-red-700 transition" title="Excluir">',
+                        '<i class="fa-solid fa-trash"></i>',
+                    '</button>',
+                '</td>',
+            '</tr>'
+        ].join('');
+    }).join('');
 }
 
-// Helper para fazer upload de imagens em Base64 para o Firebase Storage
+// ===== UPLOAD DE IMAGEM (Base64 → Firebase Storage ou mantém Base64) =====
 async function uploadBase64Imagem(dataUrl, caminho) {
-    try {
-        const ref = storage.ref(caminho);
-        const snapshot = await ref.putString(dataUrl, 'data_url');
-        const url = await snapshot.ref.getDownloadURL();
-        return url;
-    } catch (error) {
-        console.error('Erro ao fazer upload de imagem Base64:', error);
-        throw error;
-    }
-}
-
-// Ouvinte de submissão do formulário de produto (Firebase Integrado)
-document.getElementById('form-cadastro-produto')?.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const btnSalvar = this.querySelector('button[type="submit"]');
-    const originalText = btnSalvar.innerHTML;
-    
-    // Obter todas as imagens da visualização
-    const imagensPreview = [];
-    document.querySelectorAll('#pre-visualizacao-fotos img').forEach(img => { 
-        imagensPreview.push(img.src); 
-    });
-    
-    if (imagensPreview.length === 0) { 
-        alert('⚠️ Adicione pelo menos uma foto!'); 
-        return; 
-    }
-
-    try {
-        // Mostrar estado de carregamento
-        btnSalvar.disabled = true;
-        btnSalvar.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Salvando...';
-
-        const imagensFinais = [];
-        for (let i = 0; i < imagensPreview.length; i++) {
-            const src = imagensPreview[i];
-            if (src.startsWith('data:')) {
-                // Upload do Base64 para o Firebase Storage
-                const ext = src.split(';')[0].split('/')[1] || 'jpg';
-                const caminho = `produtos/${Date.now()}_${i}.${ext}`;
-                const url = await uploadBase64Imagem(src, caminho);
-                imagensFinais.push(url);
-            } else {
-                imagensFinais.push(src);
-            }
-        }
-
-        const id = document.getElementById('prod-id').value;
-        const produto = {
-            nome: document.getElementById('prod-nome').value,
-            preco: parseFloat(document.getElementById('prod-preco').value),
-            imagens: imagensFinais,
-            categoria: document.getElementById('prod-categoria').value,
-            subcategoria: document.getElementById('prod-subcategoria').value,
-            descricao: document.getElementById('prod-descricao').value,
-            ativo: document.getElementById('prod-ativo').checked
-        };
-
-        if (id) {
-            // Atualizar produto existente no Firebase
-            if (typeof id === 'string' && isNaN(id)) {
-                await db.collection('produtos').doc(id).set({
-                    ...produto,
-                    id: id
-                }, { merge: true });
-            } else {
-                // Se o ID for numérico antigo (localStorage), cria um novo documento
-                const docRef = await db.collection('produtos').add(produto);
-                await db.collection('produtos').doc(docRef.id).update({ id: docRef.id });
-            }
-        } else {
-            // Criar novo produto no Firebase
-            const docRef = await db.collection('produtos').add(produto);
-            await db.collection('produtos').doc(docRef.id).update({ id: docRef.id });
-        }
-
-        // Recarregar a lista local
-        await carregarProdutosAdmin();
-        
-        // Resetar o formulário
-        this.reset();
-        document.getElementById('pre-visualizacao-fotos').innerHTML = '';
-        document.getElementById('prod-id').value = '';
-        const btnCancelar = document.getElementById('btn-cancelar-edicao');
-        if (btnCancelar) btnCancelar.classList.add('hidden');
-        document.getElementById('form-produto-titulo').textContent = 'Adicionar Novo Produto';
-        
-        // Recarregar estatísticas do dashboard se a função existir
-        if (typeof carregarEstatisticas === 'function') {
-            carregarEstatisticas();
-        }
-        
-        alert('✅ Produto salvo com sucesso no Firebase!');
-    } catch (error) {
-        console.error('Erro ao salvar produto:', error);
-        alert('❌ Erro ao salvar produto: ' + error.message);
-    } finally {
-        btnSalvar.disabled = false;
-        btnSalvar.innerHTML = originalText;
-    }
-});
-
-function editarProduto(index) {
-    const p = produtosAdmin[index];
-    document.getElementById('prod-id').value = p.id;
-    document.getElementById('prod-nome').value = p.nome;
-    document.getElementById('prod-preco').value = p.preco;
-    document.getElementById('prod-categoria').value = p.categoria;
-    document.getElementById('prod-subcategoria').value = p.subcategoria || '';
-    document.getElementById('prod-descricao').value = p.descricao || '';
-    document.getElementById('prod-ativo').checked = p.ativo !== false;
-    const preview = document.getElementById('pre-visualizacao-fotos');
-    preview.innerHTML = p.imagens.map(img => `
-        <div class="preview-item"><img src="${img}" onerror="this.src='https://via.placeholder.com/80/333/666?text=Erro'"><button type="button" class="remove-btn" onclick="this.parentElement.remove()">×</button></div>
-    `).join('');
-    document.getElementById('form-produto-titulo').textContent = '✏️ Editando Produto';
-    const btnCancelar = document.getElementById('btn-cancelar-edicao');
-    if (btnCancelar) btnCancelar.classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-async function excluirProduto(index) {
-    const prod = produtosAdmin[index];
-    if (confirm(`⚠️ Tem certeza que deseja excluir "${prod.nome}" permanentemente?`)) {
+    // Se Firebase Storage disponível, faz upload e retorna URL pública
+    if (typeof uploadBase64Firebase === 'function' && window.storage) {
         try {
-            // Se o ID for uma string (documento do Firestore), deletar do Firestore
-            if (typeof prod.id === 'string' && isNaN(prod.id)) {
-                await db.collection('produtos').doc(prod.id).delete();
-            }
-            
-            // Remover localmente
-            produtosAdmin.splice(index, 1);
-            localStorage.setItem('produtosLoja', JSON.stringify(produtosAdmin));
-            renderizarTabelaProdutos();
-            alert('🗑️ Produto excluído com sucesso!');
-            
-            // Recarregar estatísticas
-            if (typeof carregarEstatisticas === 'function') {
-                carregarEstatisticas();
-            }
-        } catch (error) {
-            console.error('Erro ao excluir produto:', error);
-            alert('❌ Erro ao excluir produto do Firebase!');
+            return await uploadBase64Firebase(dataUrl, caminho);
+        } catch(e) {
+            console.warn('Upload Firebase falhou, mantendo Base64:', e.message);
         }
+    }
+    // Sem Firebase: guarda Base64 direto (funciona, mas ocupa localStorage)
+    return dataUrl;
+}
+
+// ===== SALVAR PRODUTO =====
+document.addEventListener('DOMContentLoaded', function() {
+
+    var formProduto = document.getElementById('form-cadastro-produto');
+    if (formProduto) {
+        formProduto.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var btnSalvar = document.getElementById('btn-salvar-produto') || this.querySelector('[type="submit"]');
+            var textoOriginal = btnSalvar ? btnSalvar.innerHTML : '';
+
+            // Coletar imagens do preview
+            var imagensPreview = [];
+            document.querySelectorAll('#pre-visualizacao-fotos img').forEach(function(img) {
+                imagensPreview.push(img.src);
+            });
+
+            if (imagensPreview.length === 0) {
+                _notificarAdmin('⚠️ Adicione pelo menos uma foto!', 'warning');
+                return;
+            }
+
+            try {
+                if (btnSalvar) {
+                    btnSalvar.disabled = true;
+                    btnSalvar.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Salvando...';
+                }
+
+                // Processar imagens: upload para Firebase se disponível
+                var imagensFinais = [];
+                for (var i = 0; i < imagensPreview.length; i++) {
+                    var src = imagensPreview[i];
+                    if (src.startsWith('data:')) {
+                        var ext = (src.split(';')[0].split('/')[1]) || 'jpg';
+                        var caminho = 'produtos/' + Date.now() + '_' + i + '.' + ext;
+                        var url = await uploadBase64Imagem(src, caminho);
+                        imagensFinais.push(url);
+                    } else {
+                        imagensFinais.push(src);
+                    }
+                }
+
+                var idAtual = document.getElementById('prod-id').value;
+                var produto = {
+                    nome:        document.getElementById('prod-nome').value.trim(),
+                    preco:       parseFloat(document.getElementById('prod-preco').value),
+                    imagens:     imagensFinais,
+                    categoria:   document.getElementById('prod-categoria').value,
+                    subcategoria:document.getElementById('prod-subcategoria').value,
+                    descricao:   document.getElementById('prod-descricao').value.trim(),
+                    ativo:       document.getElementById('prod-ativo').checked
+                };
+
+                var sucesso = false;
+
+                // Tentar salvar no Firebase
+                if (window.db) {
+                    try {
+                        if (idAtual) {
+                            await window.db.collection('produtos').doc(idAtual).set(
+                                Object.assign({}, produto, { id: idAtual }),
+                                { merge: true }
+                            );
+                        } else {
+                            var docRef = await window.db.collection('produtos').add(produto);
+                            await window.db.collection('produtos').doc(docRef.id).update({ id: docRef.id });
+                        }
+                        sucesso = true;
+                    } catch(fbErr) {
+                        console.warn('Erro Firebase, salvando em localStorage:', fbErr.message);
+                    }
+                }
+
+                // Fallback: localStorage
+                if (!sucesso) {
+                    var salvosList = [];
+                    try { salvosList = JSON.parse(localStorage.getItem('produtosLoja') || '[]'); } catch(e2) {}
+                    if (idAtual) {
+                        var idx = salvosList.findIndex(function(p) { return String(p.id) === String(idAtual); });
+                        if (idx >= 0) salvosList[idx] = Object.assign({}, produto, { id: idAtual });
+                        else salvosList.push(Object.assign({}, produto, { id: Date.now() }));
+                    } else {
+                        salvosList.push(Object.assign({}, produto, { id: Date.now() }));
+                    }
+                    localStorage.setItem('produtosLoja', JSON.stringify(salvosList));
+                }
+
+                // Recarregar lista
+                await carregarProdutosAdmin();
+                _resetarFormProduto(this);
+
+                // Atualizar estatísticas se função existir
+                if (typeof carregarEstatisticas === 'function') carregarEstatisticas();
+
+                _notificarAdmin('✅ Produto salvo com sucesso!', 'success');
+
+            } catch (err) {
+                console.error('Erro ao salvar produto:', err);
+                _notificarAdmin('❌ Erro ao salvar: ' + err.message, 'error');
+            } finally {
+                if (btnSalvar) {
+                    btnSalvar.disabled = false;
+                    btnSalvar.innerHTML = textoOriginal;
+                }
+            }
+        });
+    }
+
+    // Filtro de busca
+    var filtroBusca = document.getElementById('filtro-busca-produtos');
+    if (filtroBusca) filtroBusca.addEventListener('input', renderizarTabelaProdutos);
+
+    // Cancelar edição
+    var btnCancelar = document.getElementById('btn-cancelar-edicao');
+    if (btnCancelar) {
+        btnCancelar.addEventListener('click', function() {
+            var form = document.getElementById('form-cadastro-produto');
+            if (form) _resetarFormProduto(form);
+        });
+    }
+
+    // Upload de fotos para preview
+    var uploadFotos = document.getElementById('prod-fotos-upload');
+    if (uploadFotos) {
+        uploadFotos.addEventListener('change', function() {
+            var preview = document.getElementById('pre-visualizacao-fotos');
+            if (!preview) return;
+            // Se não está editando, limpa previews anteriores
+            var idAtual = document.getElementById('prod-id').value;
+            if (!idAtual) preview.innerHTML = '';
+
+            for (var i = 0; i < this.files.length; i++) {
+                (function(file) {
+                    var reader = new FileReader();
+                    reader.onload = function(ev) {
+                        var div = document.createElement('div');
+                        div.className = 'preview-item';
+                        div.innerHTML = '<img src="' + ev.target.result + '"><button type="button" class="remove-btn" onclick="this.parentElement.remove()">×</button>';
+                        preview.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                })(this.files[i]);
+            }
+            this.value = '';
+        });
+    }
+});
+
+// ===== EDITAR PRODUTO =====
+function editarProduto(index) {
+    var p = produtosAdmin[index];
+    if (!p) return;
+    document.getElementById('prod-id').value         = p.id;
+    document.getElementById('prod-nome').value       = p.nome;
+    document.getElementById('prod-preco').value      = p.preco;
+    document.getElementById('prod-categoria').value  = p.categoria;
+    document.getElementById('prod-subcategoria').value = p.subcategoria || '';
+    document.getElementById('prod-descricao').value  = p.descricao || '';
+    document.getElementById('prod-ativo').checked    = p.ativo !== false;
+
+    var preview = document.getElementById('pre-visualizacao-fotos');
+    if (preview) {
+        preview.innerHTML = (p.imagens || []).map(function(img) {
+            return '<div class="preview-item"><img src="' + img + '"><button type="button" class="remove-btn" onclick="this.parentElement.remove()">×</button></div>';
+        }).join('');
+    }
+
+    var titulo = document.getElementById('form-produto-titulo');
+    if (titulo) titulo.textContent = '✏️ Editando: ' + p.nome;
+
+    var btnCanc = document.getElementById('btn-cancelar-edicao');
+    if (btnCanc) btnCanc.classList.remove('hidden');
+
+    // Ir para o formulário
+    var form = document.getElementById('form-cadastro-produto');
+    if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ===== EXCLUIR PRODUTO =====
+async function excluirProduto(index) {
+    var prod = produtosAdmin[index];
+    if (!prod) return;
+    if (!confirm('⚠️ Excluir "' + prod.nome + '" permanentemente?')) return;
+
+    try {
+        // Firebase
+        if (window.db && prod.id && typeof prod.id === 'string') {
+            try { await window.db.collection('produtos').doc(prod.id).delete(); } catch(e) { console.warn(e); }
+        }
+        // localStorage
+        var salvos = [];
+        try { salvos = JSON.parse(localStorage.getItem('produtosLoja') || '[]'); } catch(e) {}
+        salvos = salvos.filter(function(p) { return String(p.id) !== String(prod.id); });
+        localStorage.setItem('produtosLoja', JSON.stringify(salvos));
+
+        produtosAdmin.splice(index, 1);
+        renderizarTabelaProdutos();
+        if (typeof carregarEstatisticas === 'function') carregarEstatisticas();
+        _notificarAdmin('🗑️ "' + prod.nome + '" excluído!', 'info');
+    } catch(err) {
+        console.error('Erro ao excluir:', err);
+        _notificarAdmin('❌ Erro ao excluir produto.', 'error');
     }
 }
 
-// Configurar ouvintes de eventos adicionais
-document.getElementById('filtro-busca-produtos')?.addEventListener('input', renderizarTabelaProdutos);
+// ===== RESETAR FORMULÁRIO =====
+function _resetarFormProduto(form) {
+    if (form) form.reset();
+    var preview = document.getElementById('pre-visualizacao-fotos');
+    if (preview) preview.innerHTML = '';
+    var idEl = document.getElementById('prod-id');
+    if (idEl) idEl.value = '';
+    var titulo = document.getElementById('form-produto-titulo');
+    if (titulo) titulo.textContent = 'Adicionar Produto';
+    var btnCanc = document.getElementById('btn-cancelar-edicao');
+    if (btnCanc) btnCanc.classList.add('hidden');
+}
 
-document.getElementById('btn-cancelar-edicao')?.addEventListener('click', function() {
-    document.getElementById('form-cadastro-produto').reset();
-    document.getElementById('pre-visualizacao-fotos').innerHTML = '';
-    document.getElementById('prod-id').value = '';
-    this.classList.add('hidden');
-    document.getElementById('form-produto-titulo').textContent = 'Adicionar Novo Produto';
-});
-
-document.getElementById('prod-fotos-upload')?.addEventListener('change', function(e) {
-    const preview = document.getElementById('pre-visualizacao-fotos');
-    if (!document.getElementById('prod-id').value) preview.innerHTML = '';
-    for (const file of this.files) {
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-            const div = document.createElement('div');
-            div.className = 'preview-item';
-            div.innerHTML = `<img src="${ev.target.result}" onerror="this.src='https://via.placeholder.com/80/333/666?text=Erro'"><button type="button" class="remove-btn" onclick="this.parentElement.remove()">×</button>`;
-            preview.appendChild(div);
-        };
-        reader.readAsDataURL(file);
+// ===== NOTIFICAÇÕES (usa showToast do admin.html se existir, senão console) =====
+function _notificarAdmin(msg, tipo) {
+    if (typeof showToast === 'function') {
+        showToast(msg, tipo || 'success');
+    } else {
+        console.info('[Admin]', msg);
     }
-    this.value = '';
-});
+}
 
-// ===== CARREGAR DADOS ADMIN =====
+// ===== carregarDadosAdmin (base — será complementado pelo admin.html) =====
 function carregarDadosAdmin() {
     carregarProdutosAdmin();
-    if (typeof carregarBannersAdmin === 'function') carregarBannersAdmin();
-    if (typeof carregarConfiguracoesAdmin === 'function') carregarConfiguracoesAdmin();
-    if (typeof carregarContatosAdmin === 'function') carregarContatosAdmin();
 }

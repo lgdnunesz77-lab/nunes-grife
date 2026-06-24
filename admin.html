@@ -3,160 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Nunes Grife</title>
-    
+    <title>Painel Administrativo — Nunes Grife</title>
+    <meta name="robots" content="noindex, nofollow">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
-    
-    <link rel="stylesheet" href="css/style.css">
-    
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        nunes: { DEFAULT: '#0a0a0a', hover: '#1a1a1a', light: '#2a2a2a' },
+                        dourado: { DEFAULT: '#D4AF37', hover: '#bda030', light: '#f5d77f' },
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700;800&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: #f4efe9; color: #1a1a1a; min-height: 100vh; }
+
         .font-elegante { font-family: 'Playfair Display', serif; }
-        .glass-header { background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(212, 175, 55, 0.15); }
-        .text-gold-gradient { background: linear-gradient(135deg, #D4AF37, #f5d77f, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .btn-gold { background: linear-gradient(135deg, #D4AF37, #bda030); color: #0a0a0a; transition: all 0.3s ease; font-weight: 700; }
-        .btn-gold:hover { transform: scale(1.03); box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3); }
-        .btn-danger-custom { background: #c0392b; color: #fff; transition: all 0.3s ease; font-weight: 700; }
-        .btn-danger-custom:hover { background: #e74c3c; transform: scale(1.03); }
-        .tab-btn.active { border-bottom: 2px solid #D4AF37; color: #D4AF37; }
-        .tab-btn { transition: all 0.3s ease; }
+
+        .glass-header {
+            background: rgba(10, 10, 10, 0.97);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .text-gold-gradient {
+            background: linear-gradient(135deg, #D4AF37, #f5d77f, #D4AF37);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #D4AF37, #bda030);
+            color: #0a0a0a;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .btn-gold:hover { transform: scale(1.02); box-shadow: 0 6px 24px rgba(212,175,55,0.35); }
+        .btn-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .btn-danger { background: #dc2626; color: #fff; font-weight: 700; transition: all 0.3s; cursor: pointer; }
+        .btn-danger:hover { background: #ef4444; transform: scale(1.02); }
+
+        .btn-secondary { background: #e5e7eb; color: #374151; font-weight: 700; transition: all 0.3s; cursor: pointer; }
+        .btn-secondary:hover { background: #d1d5db; }
+
+        /* TABS */
+        .tab-btn { transition: all 0.3s ease; border-bottom: 2px solid transparent; }
         .tab-btn:hover { color: #D4AF37; }
-        .admin-tab-content { animation: fadeIn 0.4s ease; }
+        .tab-btn.active { border-bottom-color: #D4AF37; color: #D4AF37; }
+
+        /* CARDS DE STAT */
+        .stat-card {
+            background: #fff;
+            border: 1px solid #e5d9c5;
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); border-color: #D4AF37; }
+        .stat-number { font-size: 2.5rem; font-weight: 800; color: #D4AF37; line-height: 1; }
+        .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: #888; margin-top: 4px; }
+
+        /* ABAS */
+        .admin-tab-content { animation: fadeIn 0.35s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* PREVIEW IMAGENS */
         .image-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 10px; }
         .image-preview-grid .preview-item { position: relative; border-radius: 8px; overflow: hidden; border: 2px solid #e5e7eb; aspect-ratio: 1; }
         .image-preview-grid .preview-item img { width: 100%; height: 100%; object-fit: cover; }
-        .image-preview-grid .preview-item .remove-btn { position: absolute; top: 2px; right: 2px; background: #c0392b; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
-        .image-preview-grid .preview-item .remove-btn:hover { background: #e74c3c; transform: scale(1.1); }
-        .banner-preview-item { position: relative; border-radius: 8px; overflow: hidden; border: 2px solid #e5e7eb; aspect-ratio: 16/9; background: #f0ebe5; }
+        .image-preview-grid .preview-item .remove-btn { position: absolute; top: 3px; right: 3px; background: #dc2626; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .image-preview-grid .preview-item .remove-btn:hover { background: #ef4444; }
+
+        /* BANNER PREVIEW */
+        .banner-preview-item { position: relative; border-radius: 8px; overflow: hidden; border: 2px solid #e5e7eb; aspect-ratio: 16/9; background: #f9fafb; }
         .banner-preview-item img { width: 100%; height: 100%; object-fit: cover; }
-        .banner-preview-item .remove-btn { position: absolute; top: 5px; right: 5px; background: #c0392b; color: #fff; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
-        .banner-preview-item .remove-btn:hover { background: #e74c3c; transform: scale(1.1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .stat-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; transition: all 0.3s; }
-        .stat-card:hover { transform: translateY(-3px); border-color: var(--gold-pure); }
-        .stat-card .number { font-size: 2.5rem; font-weight: 800; color: var(--gold-pure); }
-        .stat-card .label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px; }
-        @media (max-width: 640px) { .banner-preview-item { aspect-ratio: 16/9; } }
+        .banner-preview-item .remove-btn { position: absolute; top: 6px; right: 6px; background: #dc2626; color: #fff; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .banner-preview-item .remove-btn:hover { background: #ef4444; }
+
+        /* TABELA */
+        table { border-collapse: collapse; width: 100%; }
+        thead { background: #f9f5ef; }
+
+        /* INPUTS */
+        .form-input { border: 1px solid #d1d5db; border-radius: 10px; padding: 8px 12px; font-size: 12px; width: 100%; outline: none; transition: border-color 0.2s; font-family: inherit; }
+        .form-input:focus { border-color: #D4AF37; box-shadow: 0 0 0 2px rgba(212,175,55,0.15); }
+        select.form-input { background: #fff; }
+
+        /* STATUS PEDIDOS */
+        .status-pendente { background: #fef3c7; color: #92400e; }
+        .status-confirmado { background: #d1fae5; color: #065f46; }
+        .status-cancelado { background: #fee2e2; color: #991b1b; }
+        .status-entregue { background: #dbeafe; color: #1e40af; }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #f4efe9; }
+        ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
+
+        /* LOGIN */
+        .login-card { background: #fff; border: 1px solid rgba(212,175,55,0.2); }
     </style>
 </head>
-<body class="bg-claro font-sans text-escuro min-h-screen flex flex-col justify-between">
+<body>
 
-    <!-- CABEÇALHO -->
-    <header class="glass-header text-white shadow-md">
+    <!-- ===== HEADER ===== -->
+    <header class="glass-header text-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-nunes border-2 border-dourado rounded-full flex items-center justify-center">
                     <svg viewBox="0 0 100 100" class="w-7 h-7 fill-current text-dourado">
                         <path d="M50,15 L62,28 L78,20 L72,40 L28,40 L22,20 L38,28 Z" />
-                        <circle cx="50" cy="12" r="3" /><circle cx="78" cy="17" r="3" /><circle cx="22" cy="17" r="3" />
+                        <circle cx="50" cy="12" r="3"/><circle cx="78" cy="17" r="3"/><circle cx="22" cy="17" r="3"/>
                         <text x="50" y="70" font-family="'Playfair Display', serif" font-weight="bold" font-size="28" text-anchor="middle">NG</text>
-                        <line x1="25" y1="78" x2="75" y2="78" stroke="#D4AF37" stroke-width="2" />
+                        <line x1="25" y1="78" x2="75" y2="78" stroke="#D4AF37" stroke-width="2"/>
                     </svg>
                 </div>
                 <div>
                     <h1 class="text-sm md:text-base font-bold tracking-wider text-gold-gradient uppercase font-elegante">Painel Admin</h1>
-                    <p class="text-[9px] text-dourado-light uppercase">Nunes Grife</p>
+                    <p class="text-[9px] text-dourado-light uppercase tracking-widest">Nunes Grife</p>
                 </div>
             </div>
-            <div id="admin-user-info" class="flex items-center gap-4 text-xs">
-                <span class="text-gray-300 hidden sm:inline" id="txt-user-email">hiago@nunesgrife.com</span>
-                <button id="btn-logout" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-2 transition">
-                    <i class="fa-solid fa-right-from-bracket"></i> Sair
+            <div id="admin-user-info" class="flex items-center gap-3 text-xs">
+                <span class="text-gray-300 hidden sm:inline" id="txt-user-email"></span>
+                <a href="index.html" class="text-gray-400 hover:text-dourado transition text-xs hidden sm:flex items-center gap-1">
+                    <i class="fa-solid fa-store text-[10px]"></i> Ver Loja
+                </a>
+                <button id="btn-logout" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-2 transition text-xs">
+                    <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">Sair</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- LOGIN -->
-    <div id="login-container" class="flex-grow flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-dourado/20">
+    <!-- ===== TELA DE LOGIN ===== -->
+    <div id="login-container" class="min-h-screen flex items-center justify-center p-4">
+        <div class="login-card p-8 rounded-2xl shadow-xl w-full max-w-md">
             <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-nunes border-2 border-dourado rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                <div class="w-16 h-16 bg-nunes border-2 border-dourado rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                     <svg viewBox="0 0 100 100" class="w-10 h-10 fill-current text-dourado">
                         <path d="M50,15 L62,28 L78,20 L72,40 L28,40 L22,20 L38,28 Z" />
-                        <circle cx="50" cy="12" r="3" /><circle cx="78" cy="17" r="3" /><circle cx="22" cy="17" r="3" />
+                        <circle cx="50" cy="12" r="3"/><circle cx="78" cy="17" r="3"/><circle cx="22" cy="17" r="3"/>
                         <text x="50" y="70" font-family="'Playfair Display', serif" font-weight="bold" font-size="28" text-anchor="middle">NG</text>
                     </svg>
                 </div>
-                <h3 class="text-2xl font-bold font-elegante text-nunes">Acesso Restrito</h3>
-                <p class="text-xs text-gray-500 mt-1">Identifique-se para acessar o painel</p>
+                <h2 class="text-2xl font-bold font-elegante text-nunes">Acesso Restrito</h2>
+                <p class="text-xs text-gray-500 mt-1">Identifique-se para acessar o painel de controle</p>
             </div>
-            <form id="form-login" class="space-y-4">
+
+            <form id="form-login" class="space-y-4" autocomplete="off">
                 <div>
-                    <label class="block text-xs font-bold uppercase text-gray-600 mb-1">E-mail:</label>
-                    <input type="email" id="login-email" value="hiago@nunesgrife.com" required class="w-full border border-gray-300 px-4 py-2.5 rounded-xl text-sm focus:ring-1 focus:ring-dourado outline-none">
+                    <label class="block text-xs font-bold uppercase text-gray-600 mb-1">E-mail Administrativo</label>
+                    <input type="email" id="login-email" required placeholder="admin@nunesgrife.com" autocomplete="username"
+                           class="form-input w-full">
                 </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Senha:</label>
-                    <input type="password" id="login-senha" placeholder="••••••••" required class="w-full border border-gray-300 px-4 py-2.5 rounded-xl text-sm focus:ring-1 focus:ring-dourado outline-none">
+                <div class="relative">
+                    <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Senha de Acesso</label>
+                    <input type="password" id="login-senha" required placeholder="••••••••" autocomplete="current-password"
+                           class="form-input w-full pr-10">
+                    <button type="button" id="btn-ver-senha" class="absolute right-3 top-7 text-gray-400 hover:text-gray-600 transition text-sm" tabindex="-1">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
                 </div>
-                <button type="submit" class="w-full btn-gold py-3 rounded-xl uppercase tracking-wider font-semibold text-xs mt-6 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-lock"></i> Desbloquear
+                <div id="login-erro" class="hidden bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-lg"></div>
+                <button type="submit" id="btn-login-submit" class="btn-gold w-full py-3 rounded-xl uppercase tracking-wider text-xs mt-2 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-lock"></i> Desbloquear Painel
                 </button>
             </form>
-            <p class="text-[10px] text-center text-gray-400 mt-4">* Senha padrão: <strong class="text-dourado">nunes123</strong></p>
         </div>
     </div>
 
-    <!-- PAINEL -->
-    <main id="admin-panel" class="hidden flex-grow container mx-auto px-4 py-8">
-        
-        <!-- ESTATÍSTICAS (Dashboard) -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="dashboard-stats">
-            <div class="stat-card">
-                <div class="number" id="stat-produtos">0</div>
-                <div class="label">Produtos</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" id="stat-pedidos">0</div>
-                <div class="label">Pedidos</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" id="stat-clientes">0</div>
-                <div class="label">Clientes</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" id="stat-pendentes">0</div>
-                <div class="label">Pendentes</div>
-            </div>
-        </div>
+    <!-- ===== PAINEL PRINCIPAL ===== -->
+    <main id="admin-panel" class="hidden container mx-auto px-4 py-8">
 
         <!-- ABAS -->
-        <div class="flex border-b border-gray-200 mb-8 overflow-x-auto gap-2">
-            <button onclick="switchTab('tab-produtos')" class="tab-btn active px-5 py-3 text-sm font-bold border-b-2 border-dourado text-dourado flex items-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-shirt text-dourado"></i> Produtos
+        <div class="flex border-b border-gray-200 mb-8 overflow-x-auto gap-1" id="admin-tabs">
+            <button onclick="switchTab('tab-dashboard')" class="tab-btn active px-4 py-3 text-xs font-bold border-b-2 border-dourado text-dourado flex items-center gap-2 whitespace-nowrap select-none">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
             </button>
-            <button onclick="switchTab('tab-banners')" class="tab-btn px-5 py-3 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-dourado flex items-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-images text-dourado"></i> Banners
+            <button onclick="switchTab('tab-produtos')" class="tab-btn px-4 py-3 text-xs font-bold text-gray-500 flex items-center gap-2 whitespace-nowrap select-none">
+                <i class="fa-solid fa-shirt"></i> Produtos
             </button>
-            <button onclick="switchTab('tab-config')" class="tab-btn px-5 py-3 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-dourado flex items-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-gears text-dourado"></i> Configurações
+            <button onclick="switchTab('tab-pedidos')" class="tab-btn px-4 py-3 text-xs font-bold text-gray-500 flex items-center gap-2 whitespace-nowrap select-none">
+                <i class="fa-solid fa-receipt"></i> Pedidos
             </button>
-            <button onclick="switchTab('tab-contatos')" class="tab-btn px-5 py-3 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-dourado flex items-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-address-book text-dourado"></i> Contatos
+            <button onclick="switchTab('tab-banners')" class="tab-btn px-4 py-3 text-xs font-bold text-gray-500 flex items-center gap-2 whitespace-nowrap select-none">
+                <i class="fa-solid fa-images"></i> Banners
             </button>
-            <button onclick="switchTab('tab-pedidos')" class="tab-btn px-5 py-3 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-dourado flex items-center gap-2 whitespace-nowrap">
-                <i class="fa-solid fa-receipt text-dourado"></i> Pedidos
+            <button onclick="switchTab('tab-config')" class="tab-btn px-4 py-3 text-xs font-bold text-gray-500 flex items-center gap-2 whitespace-nowrap select-none">
+                <i class="fa-solid fa-gears"></i> Configurações
+            </button>
+            <button onclick="switchTab('tab-contatos')" class="tab-btn px-4 py-3 text-xs font-bold text-gray-500 flex items-center gap-2 whitespace-nowrap select-none">
+                <i class="fa-solid fa-address-book"></i> Contatos
             </button>
         </div>
 
-        <!-- PRODUTOS -->
-        <div id="tab-produtos" class="admin-tab-content space-y-6">
+        <!-- ===== ABA: DASHBOARD ===== -->
+        <div id="tab-dashboard" class="admin-tab-content space-y-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-produtos">—</div>
+                    <div class="stat-label">Produtos Ativos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-pedidos">—</div>
+                    <div class="stat-label">Total de Pedidos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-clientes">—</div>
+                    <div class="stat-label">Clientes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number text-orange-500" id="stat-pendentes">—</div>
+                    <div class="stat-label">Pedidos Pendentes</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="text-base font-bold text-nunes font-elegante mb-4">Últimos Pedidos</h3>
+                <div id="dashboard-pedidos-recentes">
+                    <p class="text-xs text-gray-400 text-center py-6">Nenhum pedido recente.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ABA: PRODUTOS ===== -->
+        <div id="tab-produtos" class="admin-tab-content space-y-6 hidden">
             <div class="flex flex-col lg:flex-row gap-6">
-                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm w-full lg:w-1/3">
-                    <h4 id="form-produto-titulo" class="text-lg font-bold text-nunes font-elegante border-b border-gray-100 pb-3 mb-4">Adicionar Produto</h4>
-                    <form id="form-cadastro-produto" class="space-y-4">
+
+                <!-- Formulário -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm w-full lg:w-[340px] shrink-0">
+                    <h4 id="form-produto-titulo" class="text-base font-bold text-nunes font-elegante border-b border-gray-100 pb-3 mb-4">Adicionar Produto</h4>
+                    <form id="form-cadastro-produto" class="space-y-3" autocomplete="off">
                         <input type="hidden" id="prod-id">
+
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Categoria:</label>
-                            <select id="prod-categoria" class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none bg-white">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Categoria</label>
+                            <select id="prod-categoria" class="form-input">
                                 <option value="roupas">👔 Roupas</option>
                                 <option value="calcados">👟 Calçados</option>
                                 <option value="acessorios">💍 Acessórios</option>
@@ -165,9 +270,10 @@
                                 <option value="time">⚽ Camisas de Time</option>
                             </select>
                         </div>
+
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Subcategoria:</label>
-                            <select id="prod-subcategoria" class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none bg-white">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Subcategoria</label>
+                            <select id="prod-subcategoria" class="form-input">
                                 <option value="">Nenhuma</option>
                                 <option value="camisetas">Camisetas</option>
                                 <option value="camisas">Camisas</option>
@@ -176,85 +282,124 @@
                                 <option value="jeans">Jeans</option>
                                 <option value="polos">Polos</option>
                                 <option value="moletom">Moletom</option>
+                                <option value="regatas">Regatas</option>
                             </select>
                         </div>
+
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Nome do Produto:</label>
-                            <input type="text" id="prod-nome" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Nome do Produto *</label>
+                            <input type="text" id="prod-nome" required placeholder="Ex: Camiseta Premium Gold" class="form-input">
                         </div>
+
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Preço (R$):</label>
-                            <input type="number" step="0.01" id="prod-preco" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none font-mono">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Preço (R$) *</label>
+                            <input type="number" step="0.01" min="0.01" id="prod-preco" required placeholder="0,00" class="form-input font-mono">
                         </div>
+
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Fotos:</label>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Fotos do Produto *</label>
                             <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-dourado transition relative bg-gray-50">
                                 <input type="file" id="prod-fotos-upload" accept="image/*" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                                 <i class="fa-solid fa-camera text-dourado text-xl mb-1"></i>
                                 <p class="text-[10px] font-bold text-gray-700">Selecione as imagens</p>
                                 <p class="text-[9px] text-gray-400">JPG, PNG, WEBP • Múltiplas fotos</p>
                             </div>
-                            <div id="pre-visualizacao-fotos" class="image-preview-grid mt-2"></div>
+                            <div id="pre-visualizacao-fotos" class="image-preview-grid"></div>
                         </div>
+
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Descrição:</label>
-                            <textarea id="prod-descricao" rows="2" placeholder="Detalhes do produto..." class="w-full border border-gray-300 p-3 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none"></textarea>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Descrição</label>
+                            <textarea id="prod-descricao" rows="2" placeholder="Detalhes do produto..." class="form-input resize-none"></textarea>
                         </div>
+
                         <div class="flex items-center gap-2">
                             <input type="checkbox" id="prod-ativo" checked class="accent-dourado w-4 h-4 cursor-pointer">
-                            <label for="prod-ativo" class="text-xs font-bold text-gray-700 cursor-pointer select-none">Produto Ativo</label>
+                            <label for="prod-ativo" class="text-xs font-bold text-gray-700 cursor-pointer select-none">Produto visível na loja</label>
                         </div>
-                        <div class="flex gap-2 pt-4">
-                            <button type="submit" class="flex-grow btn-gold py-2.5 rounded-xl text-xs uppercase tracking-wider font-bold">
+
+                        <div class="flex gap-2 pt-2">
+                            <button type="submit" id="btn-salvar-produto" class="btn-gold flex-1 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-save"></i> Salvar
                             </button>
-                            <button type="button" id="btn-cancelar-edicao" class="hidden bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider font-bold">
+                            <button type="button" id="btn-cancelar-edicao" class="hidden btn-secondary px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider">
                                 Cancelar
                             </button>
                         </div>
                     </form>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm w-full lg:w-2/3 overflow-x-auto">
-                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
-                        <h4 class="text-lg font-bold text-nunes font-elegante">Produtos Cadastrados</h4>
-                        <div class="relative w-48 sm:w-64">
-                            <input type="text" id="filtro-busca-produtos" placeholder="Buscar..." class="w-full border border-gray-300 pl-8 pr-3 py-1.5 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none">
+                <!-- Tabela de Produtos -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex-1 overflow-x-auto">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+                        <h4 class="text-base font-bold text-nunes font-elegante">Produtos Cadastrados</h4>
+                        <div class="relative">
+                            <input type="text" id="filtro-busca-produtos" placeholder="Buscar produto..." class="form-input pl-8 w-48 sm:w-64">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-[10px]"></i>
                         </div>
                     </div>
-                    <table class="min-w-full text-left text-xs">
-                        <thead class="bg-gray-50 text-gray-500 uppercase font-bold border-b">
+
+                    <div id="mensagem-vazia" class="hidden text-center py-10 text-gray-400">
+                        <i class="fa-solid fa-box-open text-3xl block mb-2"></i>
+                        <p class="text-xs">Nenhum produto cadastrado ainda.</p>
+                    </div>
+
+                    <table class="min-w-full text-xs text-left">
+                        <thead class="text-gray-500 uppercase font-bold border-b">
                             <tr>
-                                <th class="px-4 py-3">Foto</th>
-                                <th class="px-4 py-3">Nome</th>
-                                <th class="px-4 py-3">Categoria</th>
-                                <th class="px-4 py-3">Preço</th>
-                                <th class="px-4 py-3">Status</th>
-                                <th class="px-4 py-3 text-center">Ações</th>
+                                <th class="px-3 py-3">Foto</th>
+                                <th class="px-3 py-3">Nome</th>
+                                <th class="px-3 py-3 hidden sm:table-cell">Categoria</th>
+                                <th class="px-3 py-3">Preço</th>
+                                <th class="px-3 py-3 hidden md:table-cell">Status</th>
+                                <th class="px-3 py-3 text-center">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="tabela-produtos-corpo"></tbody>
+                        <tbody id="tabela-produtos-corpo" class="divide-y divide-gray-100"></tbody>
                     </table>
-                    <div id="mensagem-vazia" class="hidden text-center py-8 text-gray-400 text-xs">
-                        <i class="fa-solid fa-box-open text-2xl block mb-2"></i>
-                        Nenhum produto cadastrado. Adicione seu primeiro produto!
-                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- BANNERS -->
-        <div id="tab-banners" class="admin-tab-content space-y-6 hidden">
+        <!-- ===== ABA: PEDIDOS ===== -->
+        <div id="tab-pedidos" class="admin-tab-content hidden">
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm overflow-x-auto">
+                <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+                    <h4 class="text-base font-bold text-nunes font-elegante">Pedidos Recebidos</h4>
+                    <button onclick="carregarPedidos()" class="btn-gold px-4 py-2 rounded-xl text-xs flex items-center gap-2">
+                        <i class="fa-solid fa-rotate"></i> Atualizar
+                    </button>
+                </div>
+                <table class="min-w-full text-xs text-left">
+                    <thead class="text-gray-500 uppercase font-bold border-b">
+                        <tr>
+                            <th class="px-3 py-3">#</th>
+                            <th class="px-3 py-3">Cliente</th>
+                            <th class="px-3 py-3 hidden sm:table-cell">WhatsApp</th>
+                            <th class="px-3 py-3 hidden md:table-cell">Produtos</th>
+                            <th class="px-3 py-3">Total</th>
+                            <th class="px-3 py-3">Status</th>
+                            <th class="px-3 py-3 hidden lg:table-cell">Data</th>
+                            <th class="px-3 py-3 text-center">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-pedidos-corpo" class="divide-y divide-gray-100">
+                        <tr><td colspan="8" class="text-center py-8 text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== ABA: BANNERS ===== -->
+        <div id="tab-banners" class="admin-tab-content hidden">
             <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                <div class="border-b pb-3 mb-6">
-                    <h4 class="text-lg font-bold text-nunes font-elegante">Banners Rotativos</h4>
-                    <p class="text-xs text-gray-500 mt-1">Até 6 banners. Envie imagens do seu computador.</p>
+                <div class="border-b pb-4 mb-6">
+                    <h4 class="text-base font-bold text-nunes font-elegante">Banners do Carrossel</h4>
+                    <p class="text-xs text-gray-500 mt-1">O carrossel suporta até 6 banners rotativos. Envie imagens do seu computador.</p>
                 </div>
                 <form id="form-banners-carrossel" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="banners-form-list"></div>
-                    <div class="flex justify-end pt-4">
-                        <button type="submit" class="btn-gold px-8 py-3 rounded-xl uppercase tracking-wider text-xs font-bold">
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" class="btn-gold px-8 py-3 rounded-xl uppercase tracking-wider text-xs flex items-center gap-2">
                             <i class="fa-solid fa-save"></i> Salvar Banners
                         </button>
                     </div>
@@ -262,58 +407,64 @@
             </div>
         </div>
 
-        <!-- CONFIGURAÇÕES -->
-        <div id="tab-config" class="admin-tab-content space-y-6 hidden">
+        <!-- ===== ABA: CONFIGURAÇÕES ===== -->
+        <div id="tab-config" class="admin-tab-content hidden">
             <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-w-2xl">
-                <div class="border-b pb-3 mb-6">
-                    <h4 class="text-lg font-bold text-nunes font-elegante">Configurações da Loja</h4>
-                    <p class="text-xs text-gray-500 mt-1">Configure endereço, coordenadas e frete.</p>
+                <div class="border-b pb-4 mb-6">
+                    <h4 class="text-base font-bold text-nunes font-elegante">Configurações da Loja</h4>
+                    <p class="text-xs text-gray-500 mt-1">Configure os dados da loja e taxa de entrega.</p>
                 </div>
-                <form id="form-config-loja" class="space-y-4">
-                    <div class="border-b border-dashed pb-4">
-                        <h5 class="text-xs font-bold text-dourado uppercase tracking-wider mb-3">📍 Endereço</h5>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Endereço Completo:</label>
-                            <input type="text" id="cfg-endereco" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none" placeholder="Rua Exemplo, 123 - Bairro, Cidade - UF">
-                            <p class="text-[9px] text-gray-400 mt-1">Este endereço será exibido no rodapé da loja.</p>
-                        </div>
-                    </div>
-                    <div class="border-b border-dashed pb-4">
-                        <h5 class="text-xs font-bold text-dourado uppercase tracking-wider mb-3">🗺️ GPS</h5>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Latitude:</label>
-                                <input type="number" step="0.000000000000001" id="cfg-lat" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none font-mono">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Longitude:</label>
-                                <input type="number" step="0.000000000000001" id="cfg-lng" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none font-mono">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border-b border-dashed pb-4">
-                        <h5 class="text-xs font-bold text-dourado uppercase tracking-wider mb-3">🚚 Frete</h5>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Taxa de Entrega Fixa (R$):</label>
-                            <input type="number" step="0.01" id="cfg-frete-base" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none font-mono">
-                            <p class="text-[9px] text-gray-400 mt-1">Taxa única cobrada para entregas em domicílio.</p>
-                        </div>
-                    </div>
+
+                <form id="form-config-loja" class="space-y-5">
+                    <!-- Endereço -->
                     <div>
-                        <h5 class="text-xs font-bold text-dourado uppercase tracking-wider mb-3">🖼️ Logo</h5>
+                        <label class="block text-xs font-bold text-dourado uppercase tracking-wider mb-2">📍 Endereço da Loja</label>
+                        <input type="text" id="cfg-endereco" class="form-input"
+                               value="Rua Antônio Martins Nº 205, Santos Reis, Montes Claros - MG"
+                               placeholder="Endereço completo">
+                        <p class="text-[9px] text-gray-400 mt-1">Este endereço é exibido no rodapé e no mapa da loja.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Latitude (GPS)</label>
+                            <input type="number" step="any" id="cfg-lat" class="form-input font-mono" value="-16.7415" placeholder="-16.7279">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Longitude (GPS)</label>
+                            <input type="number" step="any" id="cfg-lng" class="form-input font-mono" value="-43.8628" placeholder="-43.8719">
+                        </div>
+                    </div>
+
+                    <!-- Frete -->
+                    <div>
+                        <label class="block text-xs font-bold text-dourado uppercase tracking-wider mb-2">🚚 Taxa de Entrega</label>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-bold text-gray-700">R$</span>
+                            <input type="number" step="0.01" min="0" id="cfg-frete-base" class="form-input font-mono w-32" value="10.00">
+                            <p class="text-xs text-gray-500">Valor fixo cobrado por entrega</p>
+                        </div>
+                    </div>
+
+                    <!-- Logo -->
+                    <div>
+                        <label class="block text-xs font-bold text-dourado uppercase tracking-wider mb-2">🖼️ Logo da Loja</label>
                         <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-dourado transition relative bg-gray-50">
                             <input type="file" id="cfg-logo-upload" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                             <i class="fa-solid fa-image text-dourado text-xl mb-1"></i>
                             <p class="text-[10px] font-bold text-gray-700">Envie a logo da loja</p>
-                            <p class="text-[9px] text-gray-400">PNG, JPG • Fundo transparente recomendado</p>
+                            <p class="text-[9px] text-gray-400">PNG com fundo transparente recomendado</p>
                         </div>
-                        <div id="preview-logo" class="mt-3 hidden">
-                            <img id="logo-preview-img" src="" alt="Logo" class="h-16 object-contain">
-                            <button type="button" id="btn-remover-logo" class="text-red-500 text-xs font-bold mt-1 hover:text-red-700">Remover Logo</button>
+                        <div id="preview-logo" class="mt-3 hidden flex items-center gap-4">
+                            <img id="logo-preview-img" src="" alt="Logo" class="h-16 object-contain rounded-lg border border-gray-200 p-1">
+                            <button type="button" id="btn-remover-logo" class="text-red-500 text-xs font-bold hover:text-red-700 transition">
+                                <i class="fa-solid fa-trash mr-1"></i>Remover Logo
+                            </button>
                         </div>
                     </div>
-                    <div class="flex justify-end pt-4">
-                        <button type="submit" class="btn-gold px-8 py-2.5 rounded-xl uppercase tracking-wider text-xs font-bold">
+
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" class="btn-gold px-8 py-2.5 rounded-xl uppercase tracking-wider text-xs flex items-center gap-2">
                             <i class="fa-solid fa-save"></i> Salvar Configurações
                         </button>
                     </div>
@@ -321,33 +472,34 @@
             </div>
         </div>
 
-        <!-- CONTATOS -->
-        <div id="tab-contatos" class="admin-tab-content space-y-6 hidden">
+        <!-- ===== ABA: CONTATOS ===== -->
+        <div id="tab-contatos" class="admin-tab-content hidden">
             <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-w-2xl">
-                <div class="border-b pb-3 mb-6">
-                    <h4 class="text-lg font-bold text-nunes font-elegante">Configurações de Contato</h4>
-                    <p class="text-xs text-gray-500 mt-1">Gerencie os contatos que aparecem na loja.</p>
+                <div class="border-b pb-4 mb-6">
+                    <h4 class="text-base font-bold text-nunes font-elegante">Contatos da Loja</h4>
+                    <p class="text-xs text-gray-500 mt-1">Gerencie os contatos exibidos na loja para os clientes.</p>
                 </div>
+
                 <form id="form-contatos" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">WhatsApp Vendas:</label>
-                        <input type="text" id="cfg-wpp-vendas" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none" placeholder="5538991500548">
-                        <p class="text-[9px] text-gray-400 mt-1">Apenas números, com DDD e código do país (55).</p>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">WhatsApp de Vendas *</label>
+                        <input type="text" id="cfg-wpp-vendas" class="form-input" placeholder="5538991500548" value="5538991500548">
+                        <p class="text-[9px] text-gray-400 mt-1">Apenas números, com código do país (55) e DDD. Ex: 5538999887766</p>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">WhatsApp Suporte:</label>
-                        <input type="text" id="cfg-wpp-suporte" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none" placeholder="5538991500548">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">WhatsApp Suporte</label>
+                        <input type="text" id="cfg-wpp-suporte" class="form-input" placeholder="5538991500548" value="5538991500548">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Instagram:</label>
-                        <input type="text" id="cfg-instagram" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none" placeholder="@nunesgrife_">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Instagram</label>
+                        <input type="text" id="cfg-instagram" class="form-input" placeholder="@nunesgrife_" value="@nunesgrife_">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">E-mail:</label>
-                        <input type="email" id="cfg-email" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none" placeholder="contato@nunesgrife.com">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">E-mail</label>
+                        <input type="email" id="cfg-email" class="form-input" placeholder="contato@nunesgrife.com" value="iagonunez08@icloud.com">
                     </div>
-                    <div class="flex justify-end pt-4">
-                        <button type="submit" class="btn-gold px-8 py-2.5 rounded-xl uppercase tracking-wider text-xs font-bold">
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" class="btn-gold px-8 py-2.5 rounded-xl uppercase tracking-wider text-xs flex items-center gap-2">
                             <i class="fa-solid fa-save"></i> Salvar Contatos
                         </button>
                     </div>
@@ -355,163 +507,266 @@
             </div>
         </div>
 
-        <!-- PEDIDOS -->
-        <div id="tab-pedidos" class="admin-tab-content space-y-6 hidden">
-            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                <div class="border-b pb-3 mb-6">
-                    <h4 class="text-lg font-bold text-nunes font-elegante">Lista de Pedidos</h4>
-                    <p class="text-xs text-gray-500 mt-1">Todos os pedidos realizados na loja.</p>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-left text-xs">
-                        <thead class="bg-gray-50 text-gray-500 uppercase font-bold border-b">
-                            <tr>
-                                <th class="px-4 py-3">#</th>
-                                <th class="px-4 py-3">Cliente</th>
-                                <th class="px-4 py-3">WhatsApp</th>
-                                <th class="px-4 py-3">Produtos</th>
-                                <th class="px-4 py-3">Total</th>
-                                <th class="px-4 py-3">Status</th>
-                                <th class="px-4 py-3">Data</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabela-pedidos-corpo"></tbody>
-                    </table>
-                    <div id="mensagem-pedidos-vazia" class="text-center py-8 text-gray-400 text-xs">
-                        <i class="fa-solid fa-receipt text-2xl block mb-2"></i>
-                        Nenhum pedido realizado ainda.
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </main>
 
-    <footer class="bg-nunes text-white py-6 border-t border-dourado/30 text-center text-xs">
-        <p>© 2026 Nunes Grife — Painel Administrativo</p>
+    <!-- ===== RODAPÉ ===== -->
+    <footer class="bg-nunes text-white py-4 text-center text-xs border-t border-dourado/30 mt-12">
+        <p class="text-gray-400">© 2026 Nunes Grife — Painel Administrativo</p>
     </footer>
 
-    <!-- ===== SCRIPTS ===== -->
+    <!-- TOAST DE NOTIFICAÇÃO -->
+    <div id="admin-toast" class="fixed bottom-6 right-6 z-[999] transition-all duration-300 opacity-0 translate-y-4 pointer-events-none">
+        <div id="admin-toast-inner" class="px-5 py-3 rounded-xl shadow-xl text-sm font-bold flex items-center gap-2 border"></div>
+    </div>
+
+    <!-- Scripts -->
     <script src="js/firebase-config.js"></script>
-    <script src="js/main.js"></script>
     <script src="js/admin.js"></script>
-    
+
     <script>
         // ============================================================
-        //  FUNÇÕES ADICIONAIS DO ADMIN (Firebase)
+        //  UTILITÁRIOS
         // ============================================================
-
-        // ===== CARREGAR ESTATÍSTICAS =====
-        async function carregarEstatisticas() {
-            try {
-                const stats = await buscarEstatisticas();
-                document.getElementById('stat-produtos').textContent = stats.totalProdutos || 0;
-                document.getElementById('stat-pedidos').textContent = stats.totalPedidos || 0;
-                document.getElementById('stat-clientes').textContent = stats.totalClientes || 0;
-                document.getElementById('stat-pendentes').textContent = stats.pedidosPendentes || 0;
-            } catch (error) {
-                console.error('Erro ao carregar estatísticas:', error);
-            }
+        function showToast(msg, tipo = 'success') {
+            const toast = document.getElementById('admin-toast');
+            const inner = document.getElementById('admin-toast-inner');
+            const estilos = {
+                success: 'bg-green-50 border-green-300 text-green-800',
+                error:   'bg-red-50 border-red-300 text-red-800',
+                warning: 'bg-yellow-50 border-yellow-300 text-yellow-800',
+                info:    'bg-blue-50 border-blue-300 text-blue-700'
+            };
+            const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+            inner.className = `px-5 py-3 rounded-xl shadow-xl text-sm font-bold flex items-center gap-2 border ${estilos[tipo] || estilos.success}`;
+            inner.innerHTML = `<i class="fa-solid ${icons[tipo] || icons.success}"></i> ${msg}`;
+            toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            clearTimeout(toast._t);
+            toast._t = setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 3500);
         }
 
-        // ===== CARREGAR PEDIDOS =====
-        async function carregarPedidos() {
-            try {
-                const snapshot = await db.collection('pedidos')
-                    .orderBy('data', 'desc')
-                    .limit(50)
-                    .get();
-                
-                const tbody = document.getElementById('tabela-pedidos-corpo');
-                const vazia = document.getElementById('mensagem-pedidos-vazia');
-                
-                if (snapshot.empty) {
-                    tbody.innerHTML = '';
-                    vazia.style.display = 'block';
-                    return;
-                }
-                vazia.style.display = 'none';
-
-                tbody.innerHTML = snapshot.docs.map((doc, index) => {
-                    const p = doc.data();
-                    const produtosLista = p.produtos ? p.produtos.map(item => 
-                        `${item.quantidade}x ${item.nome}`
-                    ).join(', ') : 'N/A';
-                    
-                    const statusColors = {
-                        'pendente': 'text-yellow-600 bg-yellow-100',
-                        'pago': 'text-green-600 bg-green-100',
-                        'enviado': 'text-blue-600 bg-blue-100',
-                        'entregue': 'text-purple-600 bg-purple-100'
-                    };
-                    const statusClass = statusColors[p.status] || 'text-gray-600 bg-gray-100';
-                    
-                    return `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-4 py-3">${index + 1}</td>
-                        <td class="px-4 py-3 font-medium text-nunes">${p.cliente || 'N/A'}</td>
-                        <td class="px-4 py-3">${p.whatsapp || 'N/A'}</td>
-                        <td class="px-4 py-3 max-w-xs truncate">${produtosLista}</td>
-                        <td class="px-4 py-3 font-bold text-dourado">R$ ${(p.total || 0).toFixed(2)}</td>
-                        <td class="px-4 py-3"><span class="px-2 py-1 rounded-full text-xs font-bold ${statusClass}">${p.status || 'pendente'}</span></td>
-                        <td class="px-4 py-3 text-gray-500">${p.data ? new Date(p.data).toLocaleDateString('pt-BR') : 'N/A'}</td>
-                    </tr>
-                `}).join('');
-            } catch (error) {
-                console.error('Erro ao carregar pedidos:', error);
+        // ============================================================
+        //  SWITCH TABS
+        // ============================================================
+        function switchTab(tabId) {
+            document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('active', 'text-dourado', 'border-dourado');
+                el.classList.add('text-gray-500', 'border-transparent');
+            });
+            const tabEl = document.getElementById(tabId);
+            if (tabEl) tabEl.classList.remove('hidden');
+            const btn = document.querySelector(`[onclick="switchTab('${tabId}')"]`);
+            if (btn) {
+                btn.classList.add('active', 'text-dourado', 'border-dourado');
+                btn.classList.remove('text-gray-500', 'border-transparent');
             }
+            // Carregar dados específicos da aba
+            if (tabId === 'tab-pedidos') carregarPedidos();
+            if (tabId === 'tab-dashboard') carregarEstatisticas();
         }
 
-        // ===== SOBRESCREVER FUNÇÃO DE CARREGAR DADOS =====
-        const carregarDadosAdminOriginal = carregarDadosAdmin;
-        carregarDadosAdmin = async function() {
-            await carregarDadosAdminOriginal();
-            await carregarEstatisticas();
-            await carregarPedidos();
-        };
+        // ============================================================
+        //  VER/OCULTAR SENHA NO LOGIN
+        // ============================================================
+        document.getElementById('btn-ver-senha').addEventListener('click', () => {
+            const input = document.getElementById('login-senha');
+            const icon = document.getElementById('btn-ver-senha').querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        });
 
-        // ===== LOGIN COM FIREBASE =====
+        // ============================================================
+        //  LOGIN
+        // ============================================================
         document.getElementById('form-login').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
+            const email = document.getElementById('login-email').value.trim();
             const senha = document.getElementById('login-senha').value;
-            
-            // Tentar login com Firebase
-            const result = await loginAdmin(email, senha);
-            if (result.success) {
-                localStorage.setItem('nunes_admin_logado', 'true');
-                document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('admin-panel').classList.remove('hidden');
-                await carregarDadosAdmin();
-            } else {
-                // Fallback para login local
-                if (email === 'hiago@nunesgrife.com' && senha === 'nunes123') {
-                    localStorage.setItem('nunes_admin_logado', 'true');
-                    document.getElementById('login-container').classList.add('hidden');
-                    document.getElementById('admin-panel').classList.remove('hidden');
-                    await carregarDadosAdmin();
-                } else {
-                    alert('⚠️ E-mail ou senha incorretos!');
+            const btn = document.getElementById('btn-login-submit');
+            const erroEl = document.getElementById('login-erro');
+
+            erroEl.classList.add('hidden');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verificando...';
+
+            // Tentar Firebase Auth primeiro
+            let logado = false;
+            if (typeof loginAdmin === 'function') {
+                const result = await loginAdmin(email, senha);
+                if (result.success) {
+                    logado = true;
+                    document.getElementById('txt-user-email').textContent = email;
                 }
+            }
+
+            if (logado) {
+                localStorage.setItem('nunes_admin_logado', 'true');
+                localStorage.setItem('nunes_admin_email', email);
+                entrarNoAdmin();
+            } else {
+                erroEl.textContent = 'E-mail ou senha incorretos. Verifique suas credenciais.';
+                erroEl.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-lock"></i> Desbloquear Painel';
             }
         });
 
-        // ===== LOGOUT =====
+        function entrarNoAdmin() {
+            document.getElementById('login-container').classList.add('hidden');
+            document.getElementById('admin-panel').classList.remove('hidden');
+            const email = localStorage.getItem('nunes_admin_email') || '';
+            if (email) document.getElementById('txt-user-email').textContent = email;
+            carregarDadosAdmin();
+        }
+
+        // ============================================================
+        //  LOGOUT
+        // ============================================================
         document.getElementById('btn-logout').addEventListener('click', async function() {
-            await logoutAdmin();
+            if (typeof logoutAdmin === 'function') await logoutAdmin();
             localStorage.removeItem('nunes_admin_logado');
+            localStorage.removeItem('nunes_admin_email');
             document.getElementById('login-container').classList.remove('hidden');
             document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-senha').value = '';
         });
 
-        // ===== BANNERS ADMIN =====
+        // ============================================================
+        //  CARREGAR DADOS ADMIN (orquestra tudo)
+        // ============================================================
+        async function carregarDadosAdmin() {
+            await carregarProdutosAdmin();
+            await carregarEstatisticas();
+            carregarBannersAdmin();
+            carregarConfiguracoesAdmin();
+            carregarContatosAdmin();
+        }
+
+        // ============================================================
+        //  ESTATÍSTICAS / DASHBOARD
+        // ============================================================
+        async function carregarEstatisticas() {
+            try {
+                if (typeof buscarEstatisticas === 'function') {
+                    const stats = await buscarEstatisticas();
+                    document.getElementById('stat-produtos').textContent = stats.totalProdutos;
+                    document.getElementById('stat-pedidos').textContent = stats.totalPedidos;
+                    document.getElementById('stat-clientes').textContent = stats.totalClientes;
+                    document.getElementById('stat-pendentes').textContent = stats.pedidosPendentes;
+                } else {
+                    // Fallback localStorage
+                    const prods = JSON.parse(localStorage.getItem('produtosLoja') || '[]');
+                    document.getElementById('stat-produtos').textContent = prods.length;
+                    ['stat-pedidos','stat-clientes','stat-pendentes'].forEach(id => {
+                        document.getElementById(id).textContent = '—';
+                    });
+                }
+            } catch(e) { console.warn('Erro ao carregar estatísticas:', e); }
+        }
+
+        // ============================================================
+        //  PEDIDOS
+        // ============================================================
+        async function carregarPedidos() {
+            const tbody = document.getElementById('tabela-pedidos-corpo');
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-6 text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Carregando...</td></tr>';
+            try {
+                if (typeof db !== 'undefined') {
+                    const snap = await db.collection('pedidos').orderBy('data', 'desc').limit(50).get();
+                    // Também atualiza dashboard
+                    const dashrec = document.getElementById('dashboard-pedidos-recentes');
+                    if (snap.empty) {
+                        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-gray-400 text-xs">Nenhum pedido ainda.</td></tr>';
+                        dashrec.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">Nenhum pedido ainda.</p>';
+                        return;
+                    }
+                    tbody.innerHTML = snap.docs.map((doc, idx) => {
+                        const p = doc.data();
+                        const prodLista = (p.produtos || []).map(pr => `${pr.quantidade}x ${pr.nome}`).join(', ') || '—';
+                        const statusClass = {
+                            pendente: 'status-pendente',
+                            confirmado: 'status-confirmado',
+                            cancelado: 'status-cancelado',
+                            entregue: 'status-entregue'
+                        }[p.status] || 'status-pendente';
+                        const data = p.data ? new Date(p.data).toLocaleDateString('pt-BR') : '—';
+                        return `<tr class="hover:bg-gray-50 transition">
+                            <td class="px-3 py-3 text-gray-400">${idx + 1}</td>
+                            <td class="px-3 py-3 font-semibold text-nunes">${p.cliente || '—'}</td>
+                            <td class="px-3 py-3 hidden sm:table-cell">
+                                <a href="https://wa.me/${(p.whatsapp||'').replace(/\D/g,'')}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                    <i class="fa-brands fa-whatsapp mr-1"></i>${p.whatsapp || '—'}
+                                </a>
+                            </td>
+                            <td class="px-3 py-3 max-w-[200px] truncate hidden md:table-cell text-gray-600">${prodLista}</td>
+                            <td class="px-3 py-3 font-bold text-dourado">R$ ${(p.total||0).toFixed(2)}</td>
+                            <td class="px-3 py-3">
+                                <select onchange="atualizarStatusPedido('${doc.id}', this.value)"
+                                    class="text-[10px] font-bold px-2 py-1 rounded-full border-0 cursor-pointer ${statusClass}">
+                                    <option value="pendente" ${p.status==='pendente'?'selected':''}>Pendente</option>
+                                    <option value="confirmado" ${p.status==='confirmado'?'selected':''}>Confirmado</option>
+                                    <option value="entregue" ${p.status==='entregue'?'selected':''}>Entregue</option>
+                                    <option value="cancelado" ${p.status==='cancelado'?'selected':''}>Cancelado</option>
+                                </select>
+                            </td>
+                            <td class="px-3 py-3 text-gray-500 hidden lg:table-cell">${data}</td>
+                            <td class="px-3 py-3 text-center">
+                                <a href="https://wa.me/${(p.whatsapp||'').replace(/\D/g,'')}?text=${encodeURIComponent(`Olá ${p.cliente}! Aqui é a Nunes Grife. Sobre seu pedido...`)}"
+                                   target="_blank" class="text-green-600 hover:text-green-800 transition text-sm" title="Falar no WhatsApp">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                </a>
+                            </td>
+                        </tr>`;
+                    }).join('');
+
+                    // Atualiza dashboard com últimos 5
+                    const recentes = snap.docs.slice(0, 5);
+                    dashrec.innerHTML = recentes.map(doc => {
+                        const p = doc.data();
+                        return `<div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0 text-xs">
+                            <div><span class="font-semibold">${p.cliente||'—'}</span> <span class="text-gray-400 ml-2">${p.data ? new Date(p.data).toLocaleDateString('pt-BR') : ''}</span></div>
+                            <span class="font-bold text-dourado">R$ ${(p.total||0).toFixed(2)}</span>
+                        </div>`;
+                    }).join('');
+
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-gray-400 text-xs">Firebase não configurado. Pedidos ficarão disponíveis após configurar as chaves.</td></tr>';
+                }
+            } catch(e) {
+                console.warn('Erro ao carregar pedidos:', e);
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-400 text-xs">Erro ao carregar pedidos.</td></tr>';
+            }
+        }
+
+        async function atualizarStatusPedido(docId, novoStatus) {
+            try {
+                await db.collection('pedidos').doc(docId).update({ status: novoStatus });
+                showToast(`✅ Status atualizado: ${novoStatus}`, 'success');
+                carregarEstatisticas();
+            } catch(e) {
+                showToast('Erro ao atualizar status.', 'error');
+            }
+        }
+
+        // ============================================================
+        //  BANNERS ADMIN
+        // ============================================================
         let bannersAdmin = [];
 
         function carregarBannersAdmin() {
             const salvos = localStorage.getItem('nunes_banners_upload');
-            if (salvos) {
-                try { bannersAdmin = JSON.parse(salvos); } catch (e) { bannersAdmin = []; }
-            } else { bannersAdmin = []; }
+            if (salvos) { try { bannersAdmin = JSON.parse(salvos); } catch(e) { bannersAdmin = []; } }
+            else { bannersAdmin = []; }
             renderizarBannersAdmin();
         }
 
@@ -522,36 +777,37 @@
                 const banner = bannersAdmin.find(b => b.index === i);
                 const img = banner ? banner.data : '';
                 html += `
-                    <div class="border border-gray-200 rounded-xl p-4 bg-gray-50">
-                        <label class="block text-xs font-bold text-gray-600 mb-2">Banner ${i}</label>
-                        <div class="banner-preview-item ${img ? '' : 'flex items-center justify-center bg-gray-100'}">
-                            ${img ? `<img src="${img}" onerror="this.src='https://via.placeholder.com/400/200/333/666?text=Erro'"><button type="button" class="remove-btn" onclick="removerBannerAdmin(${i})">×</button>` : `<span class="text-gray-400 text-xs">Nenhuma imagem</span>`}
-                        </div>
-                        <div class="mt-2">
-                            <input type="file" accept="image/*" class="w-full text-xs" onchange="uploadBannerAdmin(${i}, this)">
-                        </div>
+                <div class="border border-gray-200 rounded-xl p-4 bg-gray-50">
+                    <label class="block text-xs font-bold text-gray-600 mb-2">Banner ${i}</label>
+                    <div class="banner-preview-item ${img ? '' : 'flex items-center justify-center'}">
+                        ${img
+                            ? `<img src="${img}" onerror="this.src='https://via.placeholder.com/400x225/f0ebe5/999?text=Banner+${i}'">
+                               <button type="button" class="remove-btn" onclick="removerBannerAdmin(${i})">×</button>`
+                            : `<span class="text-gray-400 text-xs">Sem imagem</span>`}
                     </div>
-                `;
+                    <div class="mt-2">
+                        <input type="file" accept="image/*" class="w-full text-xs" onchange="uploadBannerAdmin(${i}, this)">
+                    </div>
+                </div>`;
             }
             container.innerHTML = html;
         }
 
         function uploadBannerAdmin(index, input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const existing = bannersAdmin.find(b => b.index === index);
-                    if (existing) existing.data = e.target.result;
-                    else bannersAdmin.push({ index, data: e.target.result });
-                    renderizarBannersAdmin();
-                    alert(`✅ Banner ${index} carregado! Clique em "Salvar Banners" para confirmar.`);
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
+            if (!input.files || !input.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const existing = bannersAdmin.find(b => b.index === index);
+                if (existing) existing.data = e.target.result;
+                else bannersAdmin.push({ index, data: e.target.result });
+                renderizarBannersAdmin();
+                showToast(`🖼️ Banner ${index} carregado! Clique em Salvar.`, 'info');
+            };
+            reader.readAsDataURL(input.files[0]);
         }
 
         function removerBannerAdmin(index) {
-            if (confirm(`⚠️ Remover banner ${index}?`)) {
+            if (confirm(`Remover banner ${index}?`)) {
                 bannersAdmin = bannersAdmin.filter(b => b.index !== index);
                 renderizarBannersAdmin();
             }
@@ -559,18 +815,20 @@
 
         document.getElementById('form-banners-carrossel').addEventListener('submit', function(e) {
             e.preventDefault();
-            if (bannersAdmin.length === 0) { alert('⚠️ Nenhum banner foi carregado!'); return; }
+            if (bannersAdmin.length === 0) { showToast('Adicione ao menos um banner!', 'warning'); return; }
             localStorage.setItem('nunes_banners_upload', JSON.stringify(bannersAdmin));
-            alert('✅ Banners salvos com sucesso!');
+            showToast('✅ Banners salvos com sucesso!', 'success');
         });
 
-        // ===== CONFIGURAÇÕES ADMIN =====
+        // ============================================================
+        //  CONFIGURAÇÕES ADMIN
+        // ============================================================
         function carregarConfiguracoesAdmin() {
             const config = JSON.parse(localStorage.getItem('nunes_config_loja') || '{}');
-            document.getElementById('cfg-endereco').value = config.endereco || 'Rua Exemplo, 123 - Bairro Centro, Montes Claros - MG';
-            document.getElementById('cfg-lat').value = config.latitude || '-16.7279';
-            document.getElementById('cfg-lng').value = config.longitude || '-43.8719';
-            document.getElementById('cfg-frete-base').value = config.freteBase || '10.00';
+            if (config.endereco) document.getElementById('cfg-endereco').value = config.endereco;
+            if (config.latitude) document.getElementById('cfg-lat').value = config.latitude;
+            if (config.longitude) document.getElementById('cfg-lng').value = config.longitude;
+            if (config.freteBase !== undefined) document.getElementById('cfg-frete-base').value = config.freteBase;
             const logo = localStorage.getItem('storeLogoDynamic');
             if (logo) {
                 document.getElementById('logo-preview-img').src = logo;
@@ -582,78 +840,78 @@
             e.preventDefault();
             const config = {
                 endereco: document.getElementById('cfg-endereco').value,
-                latitude: parseFloat(document.getElementById('cfg-lat').value),
-                longitude: parseFloat(document.getElementById('cfg-lng').value),
-                freteBase: parseFloat(document.getElementById('cfg-frete-base').value),
-                valorPorKm: 0,
-                raioMaximo: 0
+                latitude: parseFloat(document.getElementById('cfg-lat').value) || -16.7415,
+                longitude: parseFloat(document.getElementById('cfg-lng').value) || -43.8628,
+                freteBase: parseFloat(document.getElementById('cfg-frete-base').value) || 10
             };
             localStorage.setItem('nunes_config_loja', JSON.stringify(config));
-            alert('✅ Configurações salvas com sucesso!');
+            showToast('✅ Configurações salvas!', 'success');
         });
 
-        document.getElementById('cfg-logo-upload').addEventListener('change', function(e) {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    localStorage.setItem('storeLogoDynamic', ev.target.result);
-                    document.getElementById('logo-preview-img').src = ev.target.result;
-                    document.getElementById('preview-logo').classList.remove('hidden');
-                    alert('✅ Logo atualizada!');
-                };
-                reader.readAsDataURL(this.files[0]);
-            }
+        document.getElementById('cfg-logo-upload').addEventListener('change', function() {
+            if (!this.files || !this.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                localStorage.setItem('storeLogoDynamic', e.target.result);
+                document.getElementById('logo-preview-img').src = e.target.result;
+                document.getElementById('preview-logo').classList.remove('hidden');
+                showToast('✅ Logo atualizada!', 'success');
+            };
+            reader.readAsDataURL(this.files[0]);
         });
 
         document.getElementById('btn-remover-logo').addEventListener('click', function() {
-            localStorage.removeItem('storeLogoDynamic');
-            document.getElementById('preview-logo').classList.add('hidden');
-            alert('✅ Logo removida!');
+            if (confirm('Remover a logo atual?')) {
+                localStorage.removeItem('storeLogoDynamic');
+                document.getElementById('preview-logo').classList.add('hidden');
+                showToast('Logo removida.', 'info');
+            }
         });
 
-        // ===== CONTATOS ADMIN =====
+        // ============================================================
+        //  CONTATOS ADMIN
+        // ============================================================
         function carregarContatosAdmin() {
             const contatos = JSON.parse(localStorage.getItem('nunes_contatos') || '{}');
-            document.getElementById('cfg-wpp-vendas').value = contatos.wppVendas || '5538991500548';
-            document.getElementById('cfg-wpp-suporte').value = contatos.wppSuporte || '5538991500548';
-            document.getElementById('cfg-instagram').value = contatos.instagram || '@nunesgrife_';
-            document.getElementById('cfg-email').value = contatos.email || 'iagonunez08@icloud.com';
+            if (contatos.wppVendas) document.getElementById('cfg-wpp-vendas').value = contatos.wppVendas;
+            if (contatos.wppSuporte) document.getElementById('cfg-wpp-suporte').value = contatos.wppSuporte;
+            if (contatos.instagram) document.getElementById('cfg-instagram').value = contatos.instagram;
+            if (contatos.email) document.getElementById('cfg-email').value = contatos.email;
         }
 
         document.getElementById('form-contatos').addEventListener('submit', function(e) {
             e.preventDefault();
             const contatos = {
-                wppVendas: document.getElementById('cfg-wpp-vendas').value,
-                wppSuporte: document.getElementById('cfg-wpp-suporte').value,
+                wppVendas: document.getElementById('cfg-wpp-vendas').value.replace(/\D/g,''),
+                wppSuporte: document.getElementById('cfg-wpp-suporte').value.replace(/\D/g,''),
                 instagram: document.getElementById('cfg-instagram').value,
                 email: document.getElementById('cfg-email').value
             };
             localStorage.setItem('nunes_contatos', JSON.stringify(contatos));
-            alert('✅ Contatos salvos com sucesso!');
+            showToast('✅ Contatos salvos!', 'success');
         });
 
-        // ===== INICIALIZAÇÃO DO ADMIN =====
-        // Verificar login ao carregar
-        verificarAuth().then(user => {
-            if (user) {
-                localStorage.setItem('nunes_admin_logado', 'true');
-                document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('admin-panel').classList.remove('hidden');
-                carregarDadosAdmin();
+        // ============================================================
+        //  INICIALIZAÇÃO
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar Firebase Auth
+            if (typeof verificarAuth === 'function') {
+                verificarAuth().then(user => {
+                    if (user) {
+                        localStorage.setItem('nunes_admin_logado', 'true');
+                        localStorage.setItem('nunes_admin_email', user.email || '');
+                        entrarNoAdmin();
+                    } else if (localStorage.getItem('nunes_admin_logado') === 'true') {
+                        entrarNoAdmin();
+                    }
+                }).catch(() => {
+                    if (localStorage.getItem('nunes_admin_logado') === 'true') entrarNoAdmin();
+                });
             } else if (localStorage.getItem('nunes_admin_logado') === 'true') {
-                document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('admin-panel').classList.remove('hidden');
-                carregarDadosAdmin();
+                entrarNoAdmin();
             }
         });
-
-        // Carregar dados iniciais se já estiver logado
-        if (localStorage.getItem('nunes_admin_logado') === 'true') {
-            carregarDadosAdmin();
-        }
-
-        console.log('🚀 Nunes Grife Admin carregado com sucesso!');
-        console.log('📊 Firebase configurado e pronto para uso!');
     </script>
 </body>
 </html>

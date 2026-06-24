@@ -1,9 +1,9 @@
 // ============================================================
-//  FIREBASE CONFIGURAÇÃO
-//  Substitua com seus dados do Firebase Console
+//  FIREBASE - CONFIGURAÇÃO E FUNÇÕES DE BANCO DE DADOS
+//  Substitua os valores abaixo com os do seu Firebase Console
+//  console.firebase.google.com → Seu Projeto → Configurações
 // ============================================================
 
-// Configuração do Firebase (pegue no console.firebase.google.com)
 const firebaseConfig = {
     apiKey: "SUA_API_KEY",
     authDomain: "seu-projeto.firebaseapp.com",
@@ -14,78 +14,100 @@ const firebaseConfig = {
     measurementId: "SEU_MEASUREMENT_ID"
 };
 
-// Inicializar Firebase
-firebase.initializeApp(firebaseConfig);
+// ============================================================
+//  INICIALIZAÇÃO SEGURA (não quebra sem chaves reais)
+// ============================================================
+var db = null, auth = null, storage = null, analytics = null;
+var _firebaseAtivo = false;
 
-// Inicializar serviços
-const db = firebase.firestore();
-const auth = firebase.auth();
-const storage = firebase.storage();
-const analytics = firebase.analytics();
-
-// ===== FUNÇÕES DE BANCO DE DADOS =====
-
-// Salvar produto no Firestore
-async function salvarProdutoFirebase(produto) {
-    try {
-        const docRef = await db.collection('produtos').add(produto);
-        console.log('✅ Produto salvo com ID:', docRef.id);
-        return docRef.id;
-    } catch (error) {
-        console.error('❌ Erro ao salvar produto:', error);
-        throw error;
+(function inicializarFirebase() {
+    const placeholder = firebaseConfig.apiKey === "SUA_API_KEY";
+    if (placeholder) {
+        console.warn('⚠️ Firebase não configurado. Adicione suas chaves em js/firebase-config.js');
+        console.info('ℹ️ O site funciona normalmente com localStorage até você configurar o Firebase.');
+        return;
     }
+    try {
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        db        = firebase.firestore();
+        auth      = firebase.auth();
+        storage   = firebase.storage();
+        try { analytics = firebase.analytics(); } catch(e) {}
+        _firebaseAtivo = true;
+        console.info('✅ Firebase inicializado com sucesso!');
+    } catch (err) {
+        console.error('❌ Erro ao inicializar Firebase:', err.message);
+    }
+})();
+
+// ============================================================
+//  PRODUTOS
+// ============================================================
+async function salvarProdutoFirebase(produto) {
+    if (!db) throw new Error('Firebase não configurado.');
+    const docRef = await db.collection('produtos').add(produto);
+    await db.collection('produtos').doc(docRef.id).update({ id: docRef.id });
+    return docRef.id;
 }
 
-// Buscar todos os produtos
 async function buscarProdutosFirebase() {
+    if (!db) return [];
     try {
         const snapshot = await db.collection('produtos').get();
         const produtos = [];
-        snapshot.forEach(doc => {
-            produtos.push({ id: doc.id, ...doc.data() });
-        });
+        snapshot.forEach(doc => produtos.push({ id: doc.id, ...doc.data() }));
         return produtos;
-    } catch (error) {
-        console.error('❌ Erro ao buscar produtos:', error);
+    } catch (e) {
+        console.error('Erro ao buscar produtos:', e);
         return [];
     }
 }
 
-// Salvar pedido
+async function atualizarProdutoFirebase(id, dados) {
+    if (!db) throw new Error('Firebase não configurado.');
+    await db.collection('produtos').doc(id).set(dados, { merge: true });
+}
+
+async function excluirProdutoFirebase(id) {
+    if (!db) throw new Error('Firebase não configurado.');
+    await db.collection('produtos').doc(id).delete();
+}
+
+// ============================================================
+//  PEDIDOS
+// ============================================================
 async function salvarPedidoFirebase(pedido) {
+    if (!db) return null;
     try {
         const docRef = await db.collection('pedidos').add({
             ...pedido,
             data: new Date().toISOString(),
             status: 'pendente'
         });
-        console.log('✅ Pedido salvo com ID:', docRef.id);
         return docRef.id;
-    } catch (error) {
-        console.error('❌ Erro ao salvar pedido:', error);
-        throw error;
+    } catch (e) {
+        console.error('Erro ao salvar pedido:', e);
+        return null;
     }
 }
 
-// Salvar cliente
+// ============================================================
+//  CLIENTES
+// ============================================================
 async function salvarClienteFirebase(cliente) {
+    if (!db) return null;
     try {
-        // Verificar se cliente já existe pelo WhatsApp
-        const snapshot = await db.collection('clientes')
-            .where('whatsapp', '==', cliente.whatsapp)
-            .get();
-        
-        if (!snapshot.empty) {
-            // Atualizar cliente existente
-            const docId = snapshot.docs[0].id;
+        const snap = await db.collection('clientes')
+            .where('whatsapp', '==', cliente.whatsapp).get();
+        if (!snap.empty) {
+            const docId = snap.docs[0].id;
             await db.collection('clientes').doc(docId).update({
-                ...cliente,
-                ultimaVisita: new Date().toISOString()
+                ...cliente, ultimaVisita: new Date().toISOString()
             });
             return docId;
         } else {
-            // Criar novo cliente
             const docRef = await db.collection('clientes').add({
                 ...cliente,
                 criadoEm: new Date().toISOString(),
@@ -93,95 +115,94 @@ async function salvarClienteFirebase(cliente) {
             });
             return docRef.id;
         }
-    } catch (error) {
-        console.error('❌ Erro ao salvar cliente:', error);
-        throw error;
+    } catch (e) {
+        console.error('Erro ao salvar cliente:', e);
+        return null;
     }
 }
 
-// Buscar estatísticas (Analytics)
+// ============================================================
+//  ESTATÍSTICAS
+// ============================================================
 async function buscarEstatisticas() {
+    if (!db) return { totalProdutos: 0, totalPedidos: 0, totalClientes: 0, pedidosPendentes: 0 };
     try {
-        const [produtosSnap, pedidosSnap, clientesSnap] = await Promise.all([
+        const [prodSnap, pedSnap, cliSnap] = await Promise.all([
             db.collection('produtos').get(),
             db.collection('pedidos').get(),
             db.collection('clientes').get()
         ]);
-
         return {
-            totalProdutos: produtosSnap.size,
-            totalPedidos: pedidosSnap.size,
-            totalClientes: clientesSnap.size,
-            pedidosPendentes: pedidosSnap.docs.filter(d => d.data().status === 'pendente').length
+            totalProdutos:    prodSnap.size,
+            totalPedidos:     pedSnap.size,
+            totalClientes:    cliSnap.size,
+            pedidosPendentes: pedSnap.docs.filter(d => d.data().status === 'pendente').length
         };
-    } catch (error) {
-        console.error('❌ Erro ao buscar estatísticas:', error);
-        return {
-            totalProdutos: 0,
-            totalPedidos: 0,
-            totalClientes: 0,
-            pedidosPendentes: 0
-        };
+    } catch (e) {
+        console.error('Erro ao buscar estatísticas:', e);
+        return { totalProdutos: 0, totalPedidos: 0, totalClientes: 0, pedidosPendentes: 0 };
     }
 }
 
-// ===== AUTENTICAÇÃO =====
-
-// Login do Admin
+// ============================================================
+//  AUTENTICAÇÃO
+// ============================================================
 async function loginAdmin(email, senha) {
+    if (!auth) return { success: false, error: 'Firebase não configurado.' };
     try {
         await auth.signInWithEmailAndPassword(email, senha);
         return { success: true };
-    } catch (error) {
-        return { success: false, error: error.message };
+    } catch (e) {
+        return { success: false, error: e.message };
     }
 }
 
-// Logout do Admin
 async function logoutAdmin() {
-    try {
-        await auth.signOut();
-        return { success: true };
-    } catch (error) {
-        return { success: false, error: error.message };
-    }
+    if (!auth) return;
+    try { await auth.signOut(); } catch(e) {}
 }
 
-// Verificar se está logado
 function verificarAuth() {
-    return new Promise((resolve) => {
-        auth.onAuthStateChanged(user => {
-            resolve(user);
-        });
+    return new Promise(resolve => {
+        if (!auth) { resolve(null); return; }
+        auth.onAuthStateChanged(user => resolve(user));
     });
 }
 
-// ===== STORAGE (Imagens) =====
-
-// Upload de imagem
+// ============================================================
+//  STORAGE — UPLOAD DE IMAGENS
+// ============================================================
 async function uploadImagem(file, caminho) {
-    try {
-        const ref = storage.ref(caminho);
-        const snapshot = await ref.put(file);
-        const url = await snapshot.ref.getDownloadURL();
-        return url;
-    } catch (error) {
-        console.error('❌ Erro ao fazer upload:', error);
-        throw error;
-    }
+    if (!storage) throw new Error('Firebase Storage não configurado.');
+    const ref = storage.ref(caminho);
+    const snapshot = await ref.put(file);
+    return await snapshot.ref.getDownloadURL();
 }
 
-// Exportar funções
-window.db = db;
-window.auth = auth;
-window.storage = storage;
-window.analytics = analytics;
-window.salvarProdutoFirebase = salvarProdutoFirebase;
-window.buscarProdutosFirebase = buscarProdutosFirebase;
-window.salvarPedidoFirebase = salvarPedidoFirebase;
-window.salvarClienteFirebase = salvarClienteFirebase;
-window.buscarEstatisticas = buscarEstatisticas;
-window.loginAdmin = loginAdmin;
-window.logoutAdmin = logoutAdmin;
-window.verificarAuth = verificarAuth;
-window.uploadImagem = uploadImagem;
+async function uploadBase64Firebase(dataUrl, caminho) {
+    if (!storage) throw new Error('Firebase Storage não configurado.');
+    const ref = storage.ref(caminho);
+    const snapshot = await ref.putString(dataUrl, 'data_url');
+    return await snapshot.ref.getDownloadURL();
+}
+
+// ============================================================
+//  EXPOR NO ESCOPO GLOBAL
+// ============================================================
+window.db                   = db;
+window.auth                 = auth;
+window.storage              = storage;
+window.analytics            = analytics;
+window._firebaseAtivo       = _firebaseAtivo;
+window.salvarProdutoFirebase   = salvarProdutoFirebase;
+window.buscarProdutosFirebase  = buscarProdutosFirebase;
+window.atualizarProdutoFirebase = atualizarProdutoFirebase;
+window.excluirProdutoFirebase  = excluirProdutoFirebase;
+window.salvarPedidoFirebase    = salvarPedidoFirebase;
+window.salvarClienteFirebase   = salvarClienteFirebase;
+window.buscarEstatisticas      = buscarEstatisticas;
+window.loginAdmin              = loginAdmin;
+window.logoutAdmin             = logoutAdmin;
+window.verificarAuth           = verificarAuth;
+window.uploadImagem            = uploadImagem;
+window.uploadBase64Firebase    = uploadBase64Firebase;
