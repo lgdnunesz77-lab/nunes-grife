@@ -1,0 +1,23 @@
+# Backup e arquivos temporários
+Nova pasta/
+*Copia.html
+*copia.html
+copia.html
+deepseek_html_*
+ADM_COP.html
+FINAL_ADMIN.html
+INDEX.html
+INDEX_FINAL.html
+index_copiaII.html
+
+# Arquivo de instruções original (opcional omitir)
+organizar_e_hospedar.txt
+
+# Arquivos do sistema
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/

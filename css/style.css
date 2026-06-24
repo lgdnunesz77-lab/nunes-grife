@@ -1,0 +1,63 @@
+/* ===== VARIÁVEIS GLOBAIS ===== */
+:root {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #1a1a1a;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --border-color: #2a2a2a;
+    --gold-pure: #d4af37;
+    --gold-dark: #b8960f;
+    --whatsapp-color: #25d366;
+    --whatsapp-hover: #128c7e;
+}
+
+[data-theme="light"] {
+    --bg-primary: #f5f0eb;
+    --bg-secondary: #ffffff;
+    --text-primary: #1a1a1a;
+    --text-secondary: #555555;
+    --border-color: #e0d5c8;
+}
+
+/* ===== RESET ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-primary); color: var(--text-primary); transition: all 0.4s; }
+
+/* ===== MARCA D'ÁGUA ===== */
+body::before {
+    content: "NUNES GRIFE";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-25deg) scale(1.8);
+    font-size: 140px;
+    font-weight: 900;
+    color: rgba(212, 175, 55, 0.04);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 0;
+    letter-spacing: 25px;
+}
+
+/* ===== BOTÕES ===== */
+.btn-gold {
+    background: linear-gradient(135deg, #d4af37, #b8960f);
+    color: #0a0a0a;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.btn-gold:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3); }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 10px; }
+
+/* ===== RESPONSIVO ===== */
+@media (max-width: 640px) {
+    body::before { font-size: 60px; letter-spacing: 10px; }
+}

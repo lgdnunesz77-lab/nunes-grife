@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Nunes Grife</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+    
+    <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        .font-elegante { font-family: 'Playfair Display', serif; }
+        .glass-header { background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(212, 175, 55, 0.15); }
+        .text-gold-gradient { background: linear-gradient(135deg, #D4AF37, #f5d77f, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .btn-gold { background: linear-gradient(135deg, #D4AF37, #bda030); color: #0a0a0a; transition: all 0.3s ease; font-weight: 700; }
+        .btn-gold:hover { transform: scale(1.03); box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3); }
+        .btn-danger-custom { background: #c0392b; color: #fff; transition: all 0.3s ease; font-weight: 700; }
+        .btn-danger-custom:hover { background: #e74c3c; transform: scale(1.03); }
+        .tab-btn.active { border-bottom: 2px solid #D4AF37; color: #D4AF37; }
+        .tab-btn { transition: all 0.3s ease; }
+        .tab-btn:hover { color: #D4AF37; }
+        .admin-tab-content { animation: fadeIn 0.4s ease; }
+        .image-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 10px; }
+        .image-preview-grid .preview-item { position: relative; border-radius: 8px; overflow: hidden; border: 2px solid #e5e7eb; aspect-ratio: 1; }
+        .image-preview-grid .preview-item img { width: 100%; height: 100%; object-fit: cover; }
+        .image-preview-grid .preview-item .remove-btn { position: absolute; top: 2px; right: 2px; background: #c0392b; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        .image-preview-grid .preview-item .remove-btn:hover { background: #e74c3c; transform: scale(1.1); }
+        .banner-preview-item { position: relative; border-radius: 8px; overflow: hidden; border: 2px solid #e5e7eb; aspect-ratio: 16/9; background: #f0ebe5; }
+        .banner-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+        .banner-preview-item .remove-btn { position: absolute; top: 5px; right: 5px; background: #c0392b; color: #fff; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        .banner-preview-item .remove-btn:hover { background: #e74c3c; transform: scale(1.1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; transition: all 0.3s; }
+        .stat-card:hover { transform: translateY(-3px); border-color: var(--gold-pure); }
+        .stat-card .number { font-size: 2.5rem; font-weight: 800; color: var(--gold-pure); }
+        .stat-card .label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px; }
+        @media (max-width: 640px) { .banner-preview-item { aspect-ratio: 16/9; } }
+    </style>
+</head>
+<body class="bg-claro font-sans text-escuro min-h-screen flex flex-col justify-between">
+
+    <!-- CABEÇALHO -->
+    <header class="glass-header text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-nunes border-2 border-dourado rounded-full flex items-center justify-center">
+                    <svg viewBox="0 0 100 100" class="w-7 h-7 fill-current text-dourado">
+                        <path d="M50,15 L62,28 L78,20 L72,40 L28,40 L22,20 L38,28 Z" />
+                        <circle cx="50" cy="12" r="3" /><circle cx="78" cy="17" r="3" /><circle cx="22" cy="17" r="3" />
+                        <text x="50" y="70" font-family="'Playfair Display', serif" font-weight="bold" font-size="28" text-anchor="middle">NG</text>
+                        <line x1="25" y1="78" x2="75" y2="78" stroke="#D4AF37" stroke-width="2" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-sm md:text-base font-bold tracking-wider text-gold-gradient uppercase font-elegante">Painel Admin</h1>
+                    <p class="text-[9px] text-dourado-light uppercase">Nunes Grife</p>
+                </div>
+            </div>
+            <div id="admin-user-info" class="flex items-center gap-4 text-xs">
+                <span class="text-gray-300 hidden sm:inline" id="txt-user-email">hiago@nunesgrife.com</span>
+                <button id="btn-logout" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-2 transition">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sair
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- LOGIN -->
+    <div id="login-container" class="flex-grow flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-dourado/20">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-nunes border-2 border-dourado rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                    <svg viewBox="0 0 100 100" class="w-10 h-10 fill-current text-dourado">
+                        <path d="M50,15 L62,28 L78,20 L72,40 L28,40 L22,20 L38,28 Z" />
+                        <circle cx="50" cy="12" r="3" /><circle cx="78" cy="17" r="3" /><circle cx="22" cy="17" r="3" />
+                        <text x="50" y="70" font-family="'Playfair Display', serif" font-weight="bold" font-size="28" text-anchor="middle">NG</text>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold font-elegante text-nunes">Acesso Restrito</h3>
+                <p class="text-xs text-gray-500 mt-1">Identifique-se para acessar o painel</p>
+            </div>
+            <form id="form-login" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-600 mb-1">E-mail:</label>
+                    <input type="email" id="login-email" value="hiago@nunesgrife.com" required class="w-full border border-gray-300 px-4 py-2.5 rounded-xl text-sm focus:ring-1 focus:ring-dourado outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Senha:</label>
+                    <input type="password" id="login-senha" placeholder="••••••••" required class="w-full border border-gray-300 px-4 py-2.5 rounded-xl text-sm focus:ring-1 focus:ring-dourado outline-none">
+                </div>
+                <button type="submit" class="w-full btn-gold py-3 rounded-xl uppercase tracking-wider font-semibold text-xs mt-6 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-lock"></i> Desbloquear
+                </button>
+            </form>
+            <p class="text-[10px] text-center text-gray-400 mt-4">* Senha padrão: <strong class="text-dourado">nunes123</strong></p>
+        </div>
+    </div>
+
+    <!-- PAINEL -->
+    <main id="admin-panel" class="hidden flex-grow container mx-auto px-4 py-8">
+        
+        <!-- ESTATÍSTICAS (Dashboard) -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="dashboard-stats">
+            <div class="stat-card">
+                <div class="number" id="stat-produtos">0</div>
+                <div class="label">Produtos</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="stat-pedidos">0</div>
+                <div class="label">Pedidos</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="stat-clientes">0</div>
+                <div class="label">Clientes</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="stat-pendentes">0</div>
+                <div class="label">Pendentes</div>
+            </div>
+        </div>
+
+        <!-- ABAS -->
+        <div class="flex border-b border-gray-200 mb-8 overflow-x-auto gap-2">
+            <button onclick="switchTab('tab-produtos')" class="tab-btn active px-5 py-3 text-sm font-bold border-b-2 border-dourado text-dourado flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-shirt text-dourado"></i> Produtos
+            </button>
+            <button onclick="switchTab('tab-banners')" class="tab-btn px-5 py-3 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-dourado flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-images text-dourado"></i> Banners
+            </button>
+            <button onclick="switchTab('tab-config')" class="tab-btn px-5 py-3 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-dourado flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-gears text-dourado"></i> Configurações
+            </button>
+            <button onclick="switchTab('tab-contatos')" class="tab-btn px-5 py-3 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-dourado flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-address-book text-dourado"></i> Contatos
+            </button>
+            <button onclick="switchTab('tab-pedidos')" class="tab-btn px-5 py-3 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-dourado flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-receipt text-dourado"></i> Pedidos
+            </button>
+        </div>
+
+        <!-- PRODUTOS -->
+        <div id="tab-produtos" class="admin-tab-content space-y-6">
+            <div class="flex flex-col lg:flex-row gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm w-full lg:w-1/3">
+                    <h4 id="form-produto-titulo" class="text-lg font-bold text-nunes font-elegante border-b border-gray-100 pb-3 mb-4">Adicionar Produto</h4>
+                    <form id="form-cadastro-produto" class="space-y-4">
+                        <input type="hidden" id="prod-id">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Categoria:</label>
+                            <select id="prod-categoria" class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none bg-white">
+                                <option value="roupas">👔 Roupas</option>
+                                <option value="calcados">👟 Calçados</option>
+                                <option value="acessorios">💍 Acessórios</option>
+                                <option value="bones">🧢 Bonés</option>
+                                <option value="academia">🏋️ Academia</option>
+                                <option value="time">⚽ Camisas de Time</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Subcategoria:</label>
+                            <select id="prod-subcategoria" class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none bg-white">
+                                <option value="">Nenhuma</option>
+                                <option value="camisetas">Camisetas</option>
+                                <option value="camisas">Camisas</option>
+                                <option value="shorts">Shorts</option>
+                                <option value="bermudas">Bermudas</option>
+                                <option value="jeans">Jeans</option>
+                                <option value="polos">Polos</option>
+                                <option value="moletom">Moletom</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Nome do Produto:</label>
+                            <input type="text" id="prod-nome" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Preço (R$):</label>
+                            <input type="number" step="0.01" id="prod-preco" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Fotos:</label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-dourado transition relative bg-gray-50">
+                                <input type="file" id="prod-fotos-upload" accept="image/*" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                <i class="fa-solid fa-camera text-dourado text-xl mb-1"></i>
+                                <p class="text-[10px] font-bold text-gray-700">Selecione as imagens</p>
+                                <p class="text-[9px] text-gray-400">JPG, PNG, WEBP • Múltiplas fotos</p>
+                            </div>
+                            <div id="pre-visualizacao-fotos" class="image-preview-grid mt-2"></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Descrição:</label>
+                            <textarea id="prod-descricao" rows="2" placeholder="Detalhes do produto..." class="w-full border border-gray-300 p-3 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none"></textarea>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="prod-ativo" checked class="accent-dourado w-4 h-4 cursor-pointer">
+                            <label for="prod-ativo" class="text-xs font-bold text-gray-700 cursor-pointer select-none">Produto Ativo</label>
+                        </div>
+                        <div class="flex gap-2 pt-4">
+                            <button type="submit" class="flex-grow btn-gold py-2.5 rounded-xl text-xs uppercase tracking-wider font-bold">
+                                <i class="fa-solid fa-save"></i> Salvar
+                            </button>
+                            <button type="button" id="btn-cancelar-edicao" class="hidden bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider font-bold">
+                                Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm w-full lg:w-2/3 overflow-x-auto">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                        <h4 class="text-lg font-bold text-nunes font-elegante">Produtos Cadastrados</h4>
+                        <div class="relative w-48 sm:w-64">
+                            <input type="text" id="filtro-busca-produtos" placeholder="Buscar..." class="w-full border border-gray-300 pl-8 pr-3 py-1.5 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-[10px]"></i>
+                        </div>
+                    </div>
+                    <table class="min-w-full text-left text-xs">
+                        <thead class="bg-gray-50 text-gray-500 uppercase font-bold border-b">
+                            <tr>
+                                <th class="px-4 py-3">Foto</th>
+                                <th class="px-4 py-3">Nome</th>
+                                <th class="px-4 py-3">Categoria</th>
+                                <th class="px-4 py-3">Preço</th>
+                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-produtos-corpo"></tbody>
+                    </table>
+                    <div id="mensagem-vazia" class="hidden text-center py-8 text-gray-400 text-xs">
+                        <i class="fa-solid fa-box-open text-2xl block mb-2"></i>
+                        Nenhum produto cadastrado. Adicione seu primeiro produto!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BANNERS -->
+        <div id="tab-banners" class="admin-tab-content space-y-6 hidden">
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                <div class="border-b pb-3 mb-6">
+                    <h4 class="text-lg font-bold text-nunes font-elegante">Banners Rotativos</h4>
+                    <p class="text-xs text-gray-500 mt-1">Até 6 banners. Envie imagens do seu computador.</p>
+                </div>
+                <form id="form-banners-carrossel" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="banners-form-list"></div>
+                    <div class="flex justify-end pt-4">
+                        <button type="submit" class="btn-gold px-8 py-3 rounded-xl uppercase tracking-wider text-xs font-bold">
+                            <i class="fa-solid fa-save"></i> Salvar Banners
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- CONFIGURAÇÕES -->
+        <div id="tab-config" class="admin-tab-content space-y-6 hidden">
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-w-2xl">
+                <div class="border-b pb-3 mb-6">
+                    <h4 class="text-lg font-bold text-nunes font-elegante">Configurações da Loja</h4>
+                    <p class="text-xs text-gray-500 mt-1">Configure endereço, coordenadas e frete.</p>
+                </div>
+                <form id="form-config-loja" class="space-y-4">
+                    <div class="border-b border-dashed pb-4">
+                        <h5 class="text-xs font-bold text-dourado uppercase tracking-wider mb-3">📍 Endereço</h5>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Endereço Completo:</label>
+                            <input type="text" id="cfg-endereco" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none" placeholder="Rua Exemplo, 123 - Bairro, Cidade - UF">
+                            <p class="text-[9px] text-gray-400 mt-1">Este endereço será exibido no rodapé da loja.</p>
+                        </div>
+                    </div>
+                    <div class="border-b border-dashed pb-4">
+                        <h5 class="text-xs font-bold text-dourado uppercase tracking-wider mb-3">🗺️ GPS</h5>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Latitude:</label>
+                                <input type="number" step="0.000000000000001" id="cfg-lat" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Longitude:</label>
+                                <input type="number" step="0.000000000000001" id="cfg-lng" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none font-mono">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border-b border-dashed pb-4">
+                        <h5 class="text-xs font-bold text-dourado uppercase tracking-wider mb-3">🚚 Frete</h5>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Taxa Base (R$):</label>
+                                <input type="number" step="0.01" id="cfg-frete-base" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Valor por KM (R$):</label>
+                                <input type="number" step="0.01" id="cfg-valor-km" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none font-mono">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Raio Máximo (KM):</label>
+                            <input type="number" id="cfg-raio-maximo" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none font-mono">
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="text-xs font-bold text-dourado uppercase tracking-wider mb-3">🖼️ Logo</h5>
+                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-dourado transition relative bg-gray-50">
+                            <input type="file" id="cfg-logo-upload" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            <i class="fa-solid fa-image text-dourado text-xl mb-1"></i>
+                            <p class="text-[10px] font-bold text-gray-700">Envie a logo da loja</p>
+                            <p class="text-[9px] text-gray-400">PNG, JPG • Fundo transparente recomendado</p>
+                        </div>
+                        <div id="preview-logo" class="mt-3 hidden">
+                            <img id="logo-preview-img" src="" alt="Logo" class="h-16 object-contain">
+                            <button type="button" id="btn-remover-logo" class="text-red-500 text-xs font-bold mt-1 hover:text-red-700">Remover Logo</button>
+                        </div>
+                    </div>
+                    <div class="flex justify-end pt-4">
+                        <button type="submit" class="btn-gold px-8 py-2.5 rounded-xl uppercase tracking-wider text-xs font-bold">
+                            <i class="fa-solid fa-save"></i> Salvar Configurações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- CONTATOS -->
+        <div id="tab-contatos" class="admin-tab-content space-y-6 hidden">
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-w-2xl">
+                <div class="border-b pb-3 mb-6">
+                    <h4 class="text-lg font-bold text-nunes font-elegante">Configurações de Contato</h4>
+                    <p class="text-xs text-gray-500 mt-1">Gerencie os contatos que aparecem na loja.</p>
+                </div>
+                <form id="form-contatos" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">WhatsApp Vendas:</label>
+                        <input type="text" id="cfg-wpp-vendas" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none" placeholder="5538991500548">
+                        <p class="text-[9px] text-gray-400 mt-1">Apenas números, com DDD e código do país (55).</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">WhatsApp Suporte:</label>
+                        <input type="text" id="cfg-wpp-suporte" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none" placeholder="5538991500548">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Instagram:</label>
+                        <input type="text" id="cfg-instagram" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none" placeholder="@nunesgrife_">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">E-mail:</label>
+                        <input type="email" id="cfg-email" required class="w-full border border-gray-300 px-3 py-2 rounded-xl text-xs focus:ring-1 focus:ring-dourado outline-none" placeholder="contato@nunesgrife.com">
+                    </div>
+                    <div class="flex justify-end pt-4">
+                        <button type="submit" class="btn-gold px-8 py-2.5 rounded-xl uppercase tracking-wider text-xs font-bold">
+                            <i class="fa-solid fa-save"></i> Salvar Contatos
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- PEDIDOS -->
+        <div id="tab-pedidos" class="admin-tab-content space-y-6 hidden">
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                <div class="border-b pb-3 mb-6">
+                    <h4 class="text-lg font-bold text-nunes font-elegante">Lista de Pedidos</h4>
+                    <p class="text-xs text-gray-500 mt-1">Todos os pedidos realizados na loja.</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-left text-xs">
+                        <thead class="bg-gray-50 text-gray-500 uppercase font-bold border-b">
+                            <tr>
+                                <th class="px-4 py-3">#</th>
+                                <th class="px-4 py-3">Cliente</th>
+                                <th class="px-4 py-3">WhatsApp</th>
+                                <th class="px-4 py-3">Produtos</th>
+                                <th class="px-4 py-3">Total</th>
+                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3">Data</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-pedidos-corpo"></tbody>
+                    </table>
+                    <div id="mensagem-pedidos-vazia" class="text-center py-8 text-gray-400 text-xs">
+                        <i class="fa-solid fa-receipt text-2xl block mb-2"></i>
+                        Nenhum pedido realizado ainda.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-nunes text-white py-6 border-t border-dourado/30 text-center text-xs">
+        <p>© 2026 Nunes Grife — Painel Administrativo</p>
+    </footer>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/admin.js"></script>
+    
+    <script>
+        // ============================================================
+        //  FUNÇÕES ADICIONAIS DO ADMIN (Firebase)
+        // ============================================================
+
+        // ===== CARREGAR ESTATÍSTICAS =====
+        async function carregarEstatisticas() {
+            try {
+                const stats = await buscarEstatisticas();
+                document.getElementById('stat-produtos').textContent = stats.totalProdutos || 0;
+                document.getElementById('stat-pedidos').textContent = stats.totalPedidos || 0;
+                document.getElementById('stat-clientes').textContent = stats.totalClientes || 0;
+                document.getElementById('stat-pendentes').textContent = stats.pedidosPendentes || 0;
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        // ===== CARREGAR PEDIDOS =====
+        async function carregarPedidos() {
+            try {
+                const snapshot = await db.collection('pedidos')
+                    .orderBy('data', 'desc')
+                    .limit(50)
+                    .get();
+                
+                const tbody = document.getElementById('tabela-pedidos-corpo');
+                const vazia = document.getElementById('mensagem-pedidos-vazia');
+                
+                if (snapshot.empty) {
+                    tbody.innerHTML = '';
+                    vazia.style.display = 'block';
+                    return;
+                }
+                vazia.style.display = 'none';
+
+                tbody.innerHTML = snapshot.docs.map((doc, index) => {
+                    const p = doc.data();
+                    const produtosLista = p.produtos ? p.produtos.map(item => 
+                        `${item.quantidade}x ${item.nome}`
+                    ).join(', ') : 'N/A';
+                    
+                    const statusColors = {
+                        'pendente': 'text-yellow-600 bg-yellow-100',
+                        'pago': 'text-green-600 bg-green-100',
+                        'enviado': 'text-blue-600 bg-blue-100',
+                        'entregue': 'text-purple-600 bg-purple-100'
+                    };
+                    const statusClass = statusColors[p.status] || 'text-gray-600 bg-gray-100';
+                    
+                    return `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-4 py-3">${index + 1}</td>
+                        <td class="px-4 py-3 font-medium text-nunes">${p.cliente || 'N/A'}</td>
+                        <td class="px-4 py-3">${p.whatsapp || 'N/A'}</td>
+                        <td class="px-4 py-3 max-w-xs truncate">${produtosLista}</td>
+                        <td class="px-4 py-3 font-bold text-dourado">R$ ${(p.total || 0).toFixed(2)}</td>
+                        <td class="px-4 py-3"><span class="px-2 py-1 rounded-full text-xs font-bold ${statusClass}">${p.status || 'pendente'}</span></td>
+                        <td class="px-4 py-3 text-gray-500">${p.data ? new Date(p.data).toLocaleDateString('pt-BR') : 'N/A'}</td>
+                    </tr>
+                `}).join('');
+            } catch (error) {
+                console.error('Erro ao carregar pedidos:', error);
+            }
+        }
+
+        // ===== SOBRESCREVER FUNÇÃO DE CARREGAR DADOS =====
+        const carregarDadosAdminOriginal = carregarDadosAdmin;
+        carregarDadosAdmin = async function() {
+            await carregarDadosAdminOriginal();
+            await carregarEstatisticas();
+            await carregarPedidos();
+        };
+
+        // ===== LOGIN COM FIREBASE =====
+        document.getElementById('form-login').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const senha = document.getElementById('login-senha').value;
+            
+            // Tentar login com Firebase
+            const result = await loginAdmin(email, senha);
+            if (result.success) {
+                localStorage.setItem('nunes_admin_logado', 'true');
+                document.getElementById('login-container').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                await carregarDadosAdmin();
+            } else {
+                // Fallback para login local
+                if (email === 'hiago@nunesgrife.com' && senha === 'nunes123') {
+                    localStorage.setItem('nunes_admin_logado', 'true');
+                    document.getElementById('login-container').classList.add('hidden');
+                    document.getElementById('admin-panel').classList.remove('hidden');
+                    await carregarDadosAdmin();
+                } else {
+                    alert('⚠️ E-mail ou senha incorretos!');
+                }
+            }
+        });
+
+        // ===== LOGOUT =====
+        document.getElementById('btn-logout').addEventListener('click', async function() {
+            await logoutAdmin();
+            localStorage.removeItem('nunes_admin_logado');
+            document.getElementById('login-container').classList.remove('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
+        });
+
+        // ===== BANNERS ADMIN =====
+        let bannersAdmin = [];
+
+        function carregarBannersAdmin() {
+            const salvos = localStorage.getItem('nunes_banners_upload');
+            if (salvos) {
+                try { bannersAdmin = JSON.parse(salvos); } catch (e) { bannersAdmin = []; }
+            } else { bannersAdmin = []; }
+            renderizarBannersAdmin();
+        }
+
+        function renderizarBannersAdmin() {
+            const container = document.getElementById('banners-form-list');
+            let html = '';
+            for (let i = 1; i <= 6; i++) {
+                const banner = bannersAdmin.find(b => b.index === i);
+                const img = banner ? banner.data : '';
+                html += `
+                    <div class="border border-gray-200 rounded-xl p-4 bg-gray-50">
+                        <label class="block text-xs font-bold text-gray-600 mb-2">Banner ${i}</label>
+                        <div class="banner-preview-item ${img ? '' : 'flex items-center justify-center bg-gray-100'}">
+                            ${img ? `<img src="${img}" onerror="this.src='https://via.placeholder.com/400/200/333/666?text=Erro'"><button type="button" class="remove-btn" onclick="removerBannerAdmin(${i})">×</button>` : `<span class="text-gray-400 text-xs">Nenhuma imagem</span>`}
+                        </div>
+                        <div class="mt-2">
+                            <input type="file" accept="image/*" class="w-full text-xs" onchange="uploadBannerAdmin(${i}, this)">
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        function uploadBannerAdmin(index, input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const existing = bannersAdmin.find(b => b.index === index);
+                    if (existing) existing.data = e.target.result;
+                    else bannersAdmin.push({ index, data: e.target.result });
+                    renderizarBannersAdmin();
+                    alert(`✅ Banner ${index} carregado! Clique em "Salvar Banners" para confirmar.`);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function removerBannerAdmin(index) {
+            if (confirm(`⚠️ Remover banner ${index}?`)) {
+                bannersAdmin = bannersAdmin.filter(b => b.index !== index);
+                renderizarBannersAdmin();
+            }
+        }
+
+        document.getElementById('form-banners-carrossel').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (bannersAdmin.length === 0) { alert('⚠️ Nenhum banner foi carregado!'); return; }
+            localStorage.setItem('nunes_banners_upload', JSON.stringify(bannersAdmin));
+            alert('✅ Banners salvos com sucesso!');
+        });
+
+        // ===== CONFIGURAÇÕES ADMIN =====
+        function carregarConfiguracoesAdmin() {
+            const config = JSON.parse(localStorage.getItem('nunes_config_loja') || '{}');
+            document.getElementById('cfg-endereco').value = config.endereco || 'Rua Exemplo, 123 - Bairro Centro, Montes Claros - MG';
+            document.getElementById('cfg-lat').value = config.latitude || '-16.7279';
+            document.getElementById('cfg-lng').value = config.longitude || '-43.8719';
+            document.getElementById('cfg-frete-base').value = config.freteBase || '10.00';
+            document.getElementById('cfg-valor-km').value = config.valorPorKm || '1.50';
+            document.getElementById('cfg-raio-maximo').value = config.raioMaximo || '50';
+            const logo = localStorage.getItem('storeLogoDynamic');
+            if (logo) {
+                document.getElementById('logo-preview-img').src = logo;
+                document.getElementById('preview-logo').classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('form-config-loja').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const config = {
+                endereco: document.getElementById('cfg-endereco').value,
+                latitude: parseFloat(document.getElementById('cfg-lat').value),
+                longitude: parseFloat(document.getElementById('cfg-lng').value),
+                freteBase: parseFloat(document.getElementById('cfg-frete-base').value),
+                valorPorKm: parseFloat(document.getElementById('cfg-valor-km').value),
+                raioMaximo: parseFloat(document.getElementById('cfg-raio-maximo').value)
+            };
+            localStorage.setItem('nunes_config_loja', JSON.stringify(config));
+            alert('✅ Configurações salvas com sucesso!');
+        });
+
+        document.getElementById('cfg-logo-upload').addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    localStorage.setItem('storeLogoDynamic', ev.target.result);
+                    document.getElementById('logo-preview-img').src = ev.target.result;
+                    document.getElementById('preview-logo').classList.remove('hidden');
+                    alert('✅ Logo atualizada!');
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        document.getElementById('btn-remover-logo').addEventListener('click', function() {
+            localStorage.removeItem('storeLogoDynamic');
+            document.getElementById('preview-logo').classList.add('hidden');
+            alert('✅ Logo removida!');
+        });
+
+        // ===== CONTATOS ADMIN =====
+        function carregarContatosAdmin() {
+            const contatos = JSON.parse(localStorage.getItem('nunes_contatos') || '{}');
+            document.getElementById('cfg-wpp-vendas').value = contatos.wppVendas || '5538991500548';
+            document.getElementById('cfg-wpp-suporte').value = contatos.wppSuporte || '5538991500548';
+            document.getElementById('cfg-instagram').value = contatos.instagram || '@nunesgrife_';
+            document.getElementById('cfg-email').value = contatos.email || 'iagonunez08@icloud.com';
+        }
+
+        document.getElementById('form-contatos').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const contatos = {
+                wppVendas: document.getElementById('cfg-wpp-vendas').value,
+                wppSuporte: document.getElementById('cfg-wpp-suporte').value,
+                instagram: document.getElementById('cfg-instagram').value,
+                email: document.getElementById('cfg-email').value
+            };
+            localStorage.setItem('nunes_contatos', JSON.stringify(contatos));
+            alert('✅ Contatos salvos com sucesso!');
+        });
+
+        // ===== INICIALIZAÇÃO DO ADMIN =====
+        // Verificar login ao carregar
+        verificarAuth().then(user => {
+            if (user) {
+                localStorage.setItem('nunes_admin_logado', 'true');
+                document.getElementById('login-container').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                carregarDadosAdmin();
+            } else if (localStorage.getItem('nunes_admin_logado') === 'true') {
+                document.getElementById('login-container').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                carregarDadosAdmin();
+            }
+        });
+
+        // Carregar dados iniciais se já estiver logado
+        if (localStorage.getItem('nunes_admin_logado') === 'true') {
+            carregarDadosAdmin();
+        }
+
+        console.log('🚀 Nunes Grife Admin carregado com sucesso!');
+        console.log('📊 Firebase configurado e pronto para uso!');
+    </script>
+</body>
+</html>
