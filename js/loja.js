@@ -127,6 +127,13 @@ function atualizarCarrinhoUI() {
         </div>
     `).join('');
 
+    const metodo = document.querySelector('input[name="tipo-entrega"]:checked')?.value || 'retirada';
+    let total = subtotal;
+    if (metodo === 'entrega') {
+        const config = JSON.parse(localStorage.getItem('nunes_config_loja') || '{"freteBase":10}');
+        total += parseFloat(config.freteBase || 0);
+    }
+
     document.getElementById('carrinho-subtotal').textContent = `R$ ${subtotal.toFixed(2)}`;
-    document.getElementById('carrinho-total').textContent = `R$ ${subtotal.toFixed(2)}`;
+    document.getElementById('carrinho-total').textContent = `R$ ${total.toFixed(2)}`;
 }
