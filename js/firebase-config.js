@@ -36,6 +36,12 @@ var _firebaseAtivo = false;
         storage   = firebase.storage();
         try { analytics = firebase.analytics(); } catch(e) {}
         _firebaseAtivo = true;
+        // Atualiza referências globais imediatamente após inicialização
+        window.db            = db;
+        window.auth          = auth;
+        window.storage       = storage;
+        window.analytics     = analytics;
+        window._firebaseAtivo = _firebaseAtivo;
         console.info('✅ Firebase inicializado com sucesso!');
     } catch (err) {
         console.error('❌ Erro ao inicializar Firebase:', err.message);

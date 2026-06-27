@@ -79,8 +79,8 @@ function carregarContatos() {
 
     var wpp      = (contatos.wppVendas  || '5538991500548').replace(/\D/g, '');
     var insta    = (contatos.instagram  || '@nunesgrife_').replace('@', '');
-    var email    = contatos.email       || 'iagonunez08@icloud.com';
-    var endereco = config.endereco      || 'Rua Antônio Martins Nº 205, Santos Reis, Montes Claros - MG';
+    var email    = contatos.email       || 'lgdnunesz77@gmail.com';
+    var endereco = config.endereco      || 'Rua Antônio Martins Nº 200 A, Santos Reis, Montes Claros - MG';
     var telefone = contatos.wppVendas   || '(38) 9 9150-0548';
 
     // Links de WhatsApp (múltiplos elementos suportados)

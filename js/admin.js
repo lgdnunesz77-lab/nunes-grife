@@ -98,18 +98,51 @@ function renderizarTabelaProdutos() {
     }).join('');
 }
 
-// ===== UPLOAD DE IMAGEM (Base64 → Firebase Storage ou mantém Base64) =====
+// Helper de timeout para evitar travamentos em chamadas do Firebase
+function comTimeout(promise, milissegundos) {
+    let timeout = new Promise((_, reject) => {
+        let id = setTimeout(() => {
+            clearTimeout(id);
+            reject(new Error("Tempo limite excedido no Firebase"));
+        }, milissegundos);
+    });
+    return Promise.race([promise, timeout]);
+}
+
+// ===== COMPRESSÃO DE IMAGEM (garante tamanho pequeno para o Firestore) =====
+function comprimirImagem(dataUrl, maxLado, qualidade) {
+    return new Promise(function(resolve) {
+        var img = new Image();
+        img.onload = function() {
+            var canvas = document.createElement('canvas');
+            var ratio = Math.min(maxLado / img.width, maxLado / img.height, 1);
+            canvas.width  = Math.round(img.width  * ratio);
+            canvas.height = Math.round(img.height * ratio);
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', qualidade));
+        };
+        img.onerror = function() { resolve(dataUrl); }; // fallback sem compressão
+        img.src = dataUrl;
+    });
+}
+
+// ===== UPLOAD DE IMAGEM (comprime → Firebase Storage OU base64 no Firestore) =====
 async function uploadBase64Imagem(dataUrl, caminho) {
-    // Se Firebase Storage disponível, faz upload e retorna URL pública
+    // Comprimir SEMPRE antes de qualquer operação (reduz de MBs para ~40-80KB)
+    var dadoComprimido = dataUrl.startsWith('data:')
+        ? await comprimirImagem(dataUrl, 600, 0.72)
+        : dataUrl;
+
+    // Se Firebase Storage disponível, faz upload e retorna URL pública permanente
     if (typeof uploadBase64Firebase === 'function' && window.storage) {
         try {
-            return await uploadBase64Firebase(dataUrl, caminho);
+            return await comTimeout(uploadBase64Firebase(dadoComprimido, caminho), 7000);
         } catch(e) {
-            console.warn('Upload Firebase falhou, mantendo Base64:', e.message);
+            console.warn('Firebase Storage indisponível, salvando base64 no Firestore:', e.message);
         }
     }
-    // Sem Firebase: guarda Base64 direto (funciona, mas ocupa localStorage)
-    return dataUrl;
+    // Fallback: base64 comprimida salva direto no Firestore (funciona sem Storage)
+    return dadoComprimido;
 }
 
 // ===== SALVAR PRODUTO =====
@@ -170,17 +203,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (window.db) {
                     try {
                         if (idAtual) {
-                            await window.db.collection('produtos').doc(idAtual).set(
+                            await comTimeout(window.db.collection('produtos').doc(idAtual).set(
                                 Object.assign({}, produto, { id: idAtual }),
                                 { merge: true }
-                            );
+                            ), 8000);
                         } else {
-                            var docRef = await window.db.collection('produtos').add(produto);
-                            await window.db.collection('produtos').doc(docRef.id).update({ id: docRef.id });
+                            var docRef = await comTimeout(window.db.collection('produtos').add(produto), 8000);
+                            await comTimeout(window.db.collection('produtos').doc(docRef.id).update({ id: docRef.id }), 5000);
                         }
                         sucesso = true;
                     } catch(fbErr) {
                         console.warn('Erro Firebase, salvando em localStorage:', fbErr.message);
+                        _notificarAdmin('⚠️ Erro de gravação no Firebase. Salvando localmente!', 'warning');
                     }
                 }
 

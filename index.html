@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nunes Grife - Estilo e Sofisticação | Montes Claros - MG</title>
+    <meta name="description" content="Nunes Grife: moda masculina premium em Montes Claros - MG. Roupas, calçados, acessórios, bonés e camisas de time com estilo e qualidade.">
+
+    <!-- CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        nunes: { DEFAULT: '#0a0a0a', hover: '#1a1a1a', light: '#2a2a2a' },
+                        dourado: { DEFAULT: '#D4AF37', hover: '#bda030', light: '#f5d77f' },
+                        escuro: '#0a0a0a',
+                        claro: '#f5f0eb'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* ===== VARIÁVEIS DE TEMA ===== */
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-card: #1a1a1a;
+            --bg-input: #111111;
+            --text-primary: #f0f0f0;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --border-color: #2a2a2a;
+            --shadow-color: rgba(0, 0, 0, 0.6);
+            --watermark-color: rgba(212, 175, 55, 0.04);
+            --card-bg: #1a1a1a;
+            --card-border: #2a2a2a;
+            --footer-text: #cccccc;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f5f0eb;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-input: #f0ebe4;
+            --text-primary: #1a1a1a;
+            --text-secondary: #555555;
+            --text-muted: #888888;
+            --border-color: #ddd0c0;
+            --shadow-color: rgba(0, 0, 0, 0.12);
+            --watermark-color: rgba(212, 175, 55, 0.06);
+            --card-bg: #ffffff;
+            --card-border: #e0d4c0;
+            --footer-text: #cccccc;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        .font-elegante { font-family: 'Playfair Display', serif; }
+
+        /* MARCA D'ÁGUA */
+        body::before {
+            content: "NUNES GRIFE";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-25deg) scale(1.8);
+            font-size: 140px;
+            font-weight: 900;
+            color: var(--watermark-color);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+            letter-spacing: 25px;
+            transition: color 0.4s ease;
+        }
+
+        .content { position: relative; z-index: 1; }
+
+        /* HEADER */
+        .glass-header {
+            background: rgba(10, 10, 10, 0.96);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+            transition: background 0.4s ease;
+        }
+        [data-theme="light"] .glass-header {
+            background: rgba(255, 255, 255, 0.96);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+        }
+        [data-theme="light"] .glass-header nav a,
+        [data-theme="light"] .glass-header .nav-text {
+            color: #1a1a1a;
+        }
+
+        .text-gold-gradient {
+            background: linear-gradient(135deg, #D4AF37, #f5d77f, #D4AF37);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* BANNERS */
+        .banner-slide {
+            background-size: cover;
+            background-position: center;
+            min-width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        .banner-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.1) 100%);
+        }
+
+        /* FILTROS DE CATEGORIA */
+        .nav-cats {
+            display: flex;
+            overflow-x: auto;
+            gap: 8px;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            scrollbar-width: none;
+            transition: background 0.4s ease, border 0.4s ease;
+        }
+        .nav-cats::-webkit-scrollbar { display: none; }
+        .nav-cats button {
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .nav-cats button:hover,
+        .nav-cats button.active {
+            background: linear-gradient(135deg, #D4AF37, #bda030);
+            color: #0a0a0a;
+            border-color: transparent;
+        }
+
+        /* CARDS PRODUTO */
+        .product-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            transition: all 0.3s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 48px var(--shadow-color);
+            border-color: rgba(212, 175, 55, 0.35);
+        }
+        .product-card .title { color: var(--text-primary); }
+        .product-card .price { color: #D4AF37; }
+        .product-card .cat { color: var(--text-secondary); }
+
+        /* CARRINHO */
+        .cart-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+        }
+        .cart-item .item-title { color: var(--text-primary); }
+        .cart-item .item-price { color: #D4AF37; }
+
+        #carrinho-sidebar { transition: all 0.3s ease; }
+
+        .sidebar-inner {
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+        }
+
+        /* FORMULÁRIO DE PEDIDO */
+        #form-checkout-pedido { display: none; }
+        #form-checkout-pedido.visible { display: block; }
+
+        .form-input-theme {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            transition: border-color 0.2s, background 0.4s;
+        }
+        .form-input-theme::placeholder { color: var(--text-muted); }
+        .form-input-theme:focus { border-color: #D4AF37; outline: none; }
+
+        .form-label-theme { color: var(--text-secondary); }
+
+        /* BOTÕES */
+        .btn-gold {
+            background: linear-gradient(135deg, #D4AF37, #bda030);
+            color: #0a0a0a;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        .btn-gold:hover { transform: scale(1.02); box-shadow: 0 6px 24px rgba(212, 175, 55, 0.4); }
+
+        .btn-outline-theme {
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+        .btn-outline-theme:hover { border-color: #D4AF37; color: #D4AF37; }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
+
+        /* ANIMAÇÕES */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.4s ease; }
+
+        /* RODAPÉ */
+        footer { background: #0a0a0a; color: var(--footer-text); }
+        footer .footer-title { color: #f5d77f; }
+
+        /* MAPA */
+        #loja-mapa { border-radius: 12px; }
+
+        @media (max-width: 640px) {
+            body::before { font-size: 60px; letter-spacing: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="content">
+
+    <!-- ===== HEADER ===== -->
+    <header class="glass-header sticky top-0 z-50 shadow-md">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-14 h-14 bg-nunes border-2 border-dourado rounded-full flex items-center justify-center shadow-lg transition-transform group-hover:scale-105">
+                    <img id="logo-header" src="" alt="Nunes Grife" style="display:none; width:100%; height:100%; object-fit:cover; border-radius:50%;">
+                    <svg id="logo-svg" viewBox="0 0 100 100" class="w-10 h-10 fill-current text-dourado">
+                        <path d="M50,15 L62,28 L78,20 L72,40 L28,40 L22,20 L38,28 Z" />
+                        <circle cx="50" cy="12" r="3" /><circle cx="78" cy="17" r="3" /><circle cx="22" cy="17" r="3" />
+                        <text x="50" y="70" font-family="'Playfair Display', serif" font-weight="bold" font-size="28" text-anchor="middle">NG</text>
+                        <line x1="25" y1="78" x2="75" y2="78" stroke="#D4AF37" stroke-width="2" />
+                    </svg>
+                </div>
+                <div class="hidden sm:block">
+                    <h1 class="text-xl font-bold tracking-wider text-gold-gradient font-elegante uppercase">Nunes</h1>
+                    <p class="text-[9px] tracking-[0.25em] text-dourado-light uppercase">G r i f e</p>
+                </div>
+            </a>
+
+            <nav class="hidden md:flex items-center gap-5 font-medium text-sm text-white nav-text">
+                <a href="#roupas" class="hover:text-dourado transition border-b-2 border-transparent hover:border-dourado pb-1">Roupas</a>
+                <a href="#calcados" class="hover:text-dourado transition border-b-2 border-transparent hover:border-dourado pb-1">Calçados</a>
+                <a href="#acessorios" class="hover:text-dourado transition border-b-2 border-transparent hover:border-dourado pb-1">Acessórios</a>
+                <a href="#bones" class="hover:text-dourado transition border-b-2 border-transparent hover:border-dourado pb-1">Bonés</a>
+                <a href="#academia" class="hover:text-dourado transition border-b-2 border-transparent hover:border-dourado pb-1">Academia</a>
+                <a href="#time" class="hover:text-dourado transition border-b-2 border-transparent hover:border-dourado pb-1">Times</a>
+            </nav>
+
+            <div class="flex items-center gap-3">
+                <button id="btn-theme" aria-label="Alternar tema" class="w-9 h-9 rounded-full border border-dourado/40 bg-nunes/50 hover:bg-dourado/20 transition flex items-center justify-center text-dourado">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+                <a href="#" id="linkInstagram" target="_blank" aria-label="Instagram" class="text-2xl hover:opacity-80 transition">
+                    <i class="fa-brands fa-instagram text-[#E4405F]"></i>
+                </a>
+                <a href="#" id="linkWhatsappVendas" target="_blank" aria-label="WhatsApp" class="text-lg hover:opacity-80 transition">
+                    <i class="fa-brands fa-whatsapp text-2xl text-[#25D366]"></i>
+                </a>
+                <button id="btn-abrir-carrinho" aria-label="Abrir carrinho" class="relative p-2 bg-nunes border border-dourado/40 rounded-full hover:border-dourado transition duration-300">
+                    <i class="fa-solid fa-bag-shopping text-dourado text-lg"></i>
+                    <span id="carrinho-contador" class="absolute -top-1 -right-1 bg-dourado text-nunes text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-nunes shadow">0</span>
+                </button>
+                <button id="btn-menu-mobile" aria-label="Menu" class="md:hidden text-white focus:outline-none">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Menu Mobile -->
+        <div id="menu-mobile" class="hidden md:hidden border-t border-dourado/20" style="background: rgba(10,10,10,0.98);">
+            <nav class="flex flex-col px-4 py-3 space-y-3 text-sm text-white">
+                <a href="#roupas" class="hover:text-dourado transition py-1 block">Roupas</a>
+                <a href="#calcados" class="hover:text-dourado transition py-1 block">Calçados</a>
+                <a href="#acessorios" class="hover:text-dourado transition py-1 block">Acessórios</a>
+                <a href="#bones" class="hover:text-dourado transition py-1 block">Bonés</a>
+                <a href="#academia" class="hover:text-dourado transition py-1 block">Academia</a>
+                <a href="#time" class="hover:text-dourado transition py-1 block">Camisas de Time</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===== BANNER / CARROSSEL ===== -->
+    <section class="relative h-[300px] md:h-[500px] overflow-hidden bg-escuro">
+        <div id="banner-track" class="flex h-full transition-transform duration-700 ease-in-out"></div>
+        <button id="banner-prev" aria-label="Banner anterior" class="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-dourado hover:text-nunes border border-dourado/30 transition z-10">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button id="banner-next" aria-label="Próximo banner" class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-dourado hover:text-nunes border border-dourado/30 transition z-10">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10" id="banner-indicators"></div>
+    </section>
+
+    <!-- ===== BARRA DE CATEGORIAS ===== -->
+    <div class="nav-cats sticky top-[72px] z-40" id="navCategorias">
+        <button class="active" data-cat="todos" onclick="filtrarCategoria('todos', this)">Todos</button>
+        <button data-cat="roupas" onclick="filtrarCategoria('roupas', this)">Roupas</button>
+        <button data-cat="calcados" onclick="filtrarCategoria('calcados', this)">Calçados</button>
+        <button data-cat="acessorios" onclick="filtrarCategoria('acessorios', this)">Acessórios</button>
+        <button data-cat="bones" onclick="filtrarCategoria('bones', this)">Bonés</button>
+        <button data-cat="academia" onclick="filtrarCategoria('academia', this)">Academia</button>
+        <button data-cat="time" onclick="filtrarCategoria('time', this)">Camisas de Time</button>
+    </div>
+
+    <!-- ===== PRODUTOS ===== -->
+    <main class="container mx-auto px-4 py-12">
+
+        <section id="roupas" class="mb-16">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold font-elegante" style="color: var(--text-primary);">Roupas</h2>
+                <span class="text-xs border border-dourado/30 px-3 py-1 rounded-full uppercase tracking-wider" style="color: var(--text-secondary); background: rgba(212,175,55,0.08);">Moda Masculina</span>
+            </div>
+            <div id="produtos-roupas" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"></div>
+        </section>
+
+        <section id="calcados" class="mb-16">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold font-elegante" style="color: var(--text-primary);">Calçados</h2>
+                <span class="text-xs border border-dourado/30 px-3 py-1 rounded-full uppercase tracking-wider" style="color: var(--text-secondary); background: rgba(212,175,55,0.08);">Passos Elegantes</span>
+            </div>
+            <div id="produtos-calcados" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"></div>
+        </section>
+
+        <section id="acessorios" class="mb-16">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold font-elegante" style="color: var(--text-primary);">Acessórios</h2>
+                <span class="text-xs border border-dourado/30 px-3 py-1 rounded-full uppercase tracking-wider" style="color: var(--text-secondary); background: rgba(212,175,55,0.08);">Complementos</span>
+            </div>
+            <div id="produtos-acessorios" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"></div>
+        </section>
+
+        <section id="bones" class="mb-16">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold font-elegante" style="color: var(--text-primary);">Bonés</h2>
+                <span class="text-xs border border-dourado/30 px-3 py-1 rounded-full uppercase tracking-wider" style="color: var(--text-secondary); background: rgba(212,175,55,0.08);">Estilo Urbano</span>
+            </div>
+            <div id="produtos-bones" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"></div>
+        </section>
+
+        <section id="academia" class="mb-16">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold font-elegante" style="color: var(--text-primary);">Academia</h2>
+                <span class="text-xs border border-dourado/30 px-3 py-1 rounded-full uppercase tracking-wider" style="color: var(--text-secondary); background: rgba(212,175,55,0.08);">Performance</span>
+            </div>
+            <div id="produtos-academia" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"></div>
+        </section>
+
+        <section id="time" class="mb-16">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold font-elegante" style="color: var(--text-primary);">Camisas de Time</h2>
+                <span class="text-xs border border-dourado/30 px-3 py-1 rounded-full uppercase tracking-wider" style="color: var(--text-secondary); background: rgba(212,175,55,0.08);">Torcida</span>
+            </div>
+            <div id="produtos-time" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"></div>
+        </section>
+
+    </main>
+
+    <!-- ===== CARRINHO SIDEBAR ===== -->
+    <div id="carrinho-sidebar" class="fixed inset-0 z-50 bg-black/65 hidden">
+        <div class="sidebar-inner absolute right-0 top-0 h-full w-full max-w-md flex flex-col shadow-2xl">
+
+            <!-- Header do Carrinho -->
+            <div class="p-4 bg-nunes text-white flex items-center justify-between border-b border-dourado/30 shrink-0">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-shopping-bag text-dourado text-lg"></i>
+                    <h3 class="text-lg font-bold font-elegante text-gold-gradient">Minha Sacola</h3>
+                </div>
+                <button id="btn-fechar-carrinho" aria-label="Fechar carrinho" class="text-white hover:text-dourado transition text-xl">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Itens do Carrinho -->
+            <div id="carrinho-itens-container" class="flex-1 p-4 overflow-y-auto space-y-3">
+                <div class="text-center py-12" style="color: var(--text-secondary);">
+                    <i class="fa-solid fa-bag-shopping text-4xl mb-3 block" style="color: var(--text-muted);"></i>
+                    Seu carrinho está vazio!
+                </div>
+            </div>
+
+            <!-- Rodapé do Carrinho -->
+            <div class="p-4 border-t space-y-4 shrink-0" style="border-color: var(--border-color); background: var(--bg-primary);">
+                <!-- Subtotal -->
+                <div class="flex justify-between items-center text-sm font-semibold">
+                    <span style="color: var(--text-secondary);">Subtotal</span>
+                    <span id="carrinho-subtotal" class="font-mono text-base font-bold" style="color: var(--text-primary);">R$ 0,00</span>
+                </div>
+
+                <!-- Forma de envio -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold uppercase tracking-wider" style="color: var(--text-secondary);">Forma de Envio</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label id="label-retirada" class="flex items-center justify-center gap-2 p-3 rounded-xl cursor-pointer hover:border-dourado transition-all select-none" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                            <input type="radio" name="tipo-entrega" id="radio-retirada" value="retirada" checked class="accent-dourado">
+                            <span class="text-xs font-semibold" style="color: var(--text-primary);">🏪 Retirada</span>
+                        </label>
+                        <label id="label-entrega" class="flex items-center justify-center gap-2 p-3 rounded-xl cursor-pointer hover:border-dourado transition-all select-none" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                            <input type="radio" name="tipo-entrega" id="radio-entrega" value="entrega" class="accent-dourado">
+                            <span class="text-xs font-semibold" style="color: var(--text-primary);">🛵 Entrega</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Endereço de entrega (oculto se retirada) -->
+                <div id="bloco-endereco-entrega" class="hidden animate-fade-in space-y-2 p-3 rounded-xl border" style="background: var(--bg-card); border-color: var(--border-color);">
+                    <label class="block text-xs font-bold" style="color: var(--text-secondary);">Endereço de Entrega</label>
+                    <input type="text" id="input-endereco-cliente" placeholder="Rua, Número, Bairro..." class="w-full px-3 py-2 rounded-lg text-xs form-input-theme">
+                    <div id="frete-info" class="flex justify-between items-center text-xs font-bold text-dourado pt-1">
+                        <span>Taxa de Entrega:</span>
+                        <span id="frete-valor-exibido">R$ 10,00</span>
+                    </div>
+                </div>
+
+                <!-- Total -->
+                <div class="flex justify-between items-center text-lg font-bold border-t pt-3" style="border-color: var(--border-color);">
+                    <span style="color: var(--text-primary);">Total</span>
+                    <span id="carrinho-total" class="font-mono text-xl text-dourado">R$ 0,00</span>
+                </div>
+
+                <!-- Botão Finalizar -->
+                <div id="bloco-botao-pedido">
+                    <button id="btn-finalizar-pedido" class="w-full btn-gold py-3 rounded-xl uppercase tracking-wider font-bold text-xs flex items-center justify-center gap-2">
+                        <i class="fa-brands fa-whatsapp text-base"></i> Enviar Pedido
+                    </button>
+                </div>
+
+                <!-- Formulário de Checkout (substitui prompt) -->
+                <div id="form-checkout-pedido" class="space-y-3 animate-fade-in">
+                    <p class="text-xs font-bold uppercase tracking-wider" style="color: var(--text-secondary);">Seus Dados</p>
+                    <input type="text" id="checkout-nome" placeholder="Seu nome completo" class="w-full px-3 py-2 rounded-lg text-xs form-input-theme">
+                    <input type="tel" id="checkout-whats" placeholder="WhatsApp (com DDD)" class="w-full px-3 py-2 rounded-lg text-xs form-input-theme">
+                    <div class="flex gap-2">
+                        <button id="btn-confirmar-pedido" class="flex-1 btn-gold py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1">
+                            <i class="fa-brands fa-whatsapp"></i> Confirmar
+                        </button>
+                        <button id="btn-cancelar-checkout" class="px-4 py-2.5 rounded-xl text-xs font-bold btn-outline-theme">
+                            Voltar
+                        </button>
+                    </div>
+                </div>
+
+                <button id="btn-continuar-comprando" class="w-full py-2.5 rounded-xl uppercase tracking-wider font-bold text-xs flex items-center justify-center gap-2 transition btn-outline-theme">
+                    <i class="fa-solid fa-arrow-left text-[10px]"></i> Continuar Comprando
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== RODAPÉ ===== -->
+    <footer class="pt-16 pb-8 border-t border-dourado/30">
+        <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-10">
+
+            <!-- Coluna 1: Marca -->
+            <div>
+                <div class="flex items-center gap-3 mb-4">
+                    <svg viewBox="0 0 100 100" class="w-12 h-12 fill-current text-dourado">
+                        <path d="M50,15 L62,28 L78,20 L72,40 L28,40 L22,20 L38,28 Z" />
+                        <circle cx="50" cy="12" r="3" /><circle cx="78" cy="17" r="3" /><circle cx="22" cy="17" r="3" />
+                        <text x="50" y="70" font-family="'Playfair Display', serif" font-weight="bold" font-size="28" text-anchor="middle">NG</text>
+                        <line x1="25" y1="78" x2="75" y2="78" stroke="#D4AF37" stroke-width="2" />
+                    </svg>
+                    <div>
+                        <h4 class="text-lg font-bold text-gold-gradient font-elegante uppercase">Nunes Grife</h4>
+                        <p class="text-xs text-dourado-light">Estilo e Sofisticação</p>
+                    </div>
+                </div>
+                <p class="text-xs leading-relaxed mb-4" style="color: var(--footer-text);">
+                    A Nunes Grife traz o melhor em vestuário masculino, calçados, acessórios, bonés e camisas de time. Qualidade e estilo para você que busca se destacar.
+                </p>
+                <div class="flex space-x-3">
+                    <a href="#" id="footerWhatsapp" target="_blank" aria-label="WhatsApp" class="w-10 h-10 rounded-full border border-dourado/30 flex items-center justify-center hover:bg-dourado hover:text-nunes transition text-white">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </a>
+                    <a href="#" id="footerInstagram" target="_blank" aria-label="Instagram" class="w-10 h-10 rounded-full border border-dourado/30 flex items-center justify-center hover:bg-dourado hover:text-nunes transition text-white">
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Coluna 2: Contatos -->
+            <div class="space-y-4">
+                <h4 class="text-lg font-bold footer-title font-elegante border-b border-dourado/20 pb-2">Contatos</h4>
+                <ul class="space-y-3 text-xs" style="color: var(--footer-text);">
+                    <li class="flex items-center gap-3">
+                        <i class="fa-solid fa-phone text-dourado text-sm w-4"></i>
+                        <span id="footerTelefone">(38) 9 9150-0548</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-location-dot text-dourado text-sm mt-0.5 w-4"></i>
+                        <span id="footerEndereco">Rua Antônio Martins Nº 200 A, Santos Reis, Montes Claros - MG</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-envelope text-dourado text-sm mt-0.5 w-4"></i>
+                        <span id="footerEmail">lgdnunesz77@gmail.com</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-clock text-dourado text-sm mt-0.5 w-4"></i>
+                        <span>
+                            <strong>Funcionamento:</strong> 24 Horas
+                        </span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Coluna 3: Mapa -->
+            <div>
+                <h4 class="text-lg font-bold footer-title font-elegante border-b border-dourado/20 pb-2 mb-3">Nossa Localização</h4>
+                <p class="text-xs mb-2" style="color: var(--footer-text);">Rua Antônio Martins, 200 A - Santos Reis, Montes Claros - MG</p>
+                <div id="loja-mapa" class="h-44 rounded-xl border border-dourado/30 shadow-md overflow-hidden"></div>
+            </div>
+        </div>
+
+        <div class="container mx-auto px-4 mt-12 pt-6 border-t border-white/10 text-center text-xs" style="color: var(--text-muted);">
+            <p class="mb-1">© 2026 Nunes Grife — Todos os direitos reservados</p>
+            <p>Montes Claros - MG | <span id="footerEmailRodape">lgdnunesz77@gmail.com</span></p>
+        </div>
+    </footer>
+
+</div><!-- /content -->
+
+<!-- Scripts externos (depois do firebase-config.js local) -->
+<script src="js/firebase-config.js"></script>
+<script src="js/main.js"></script>
+<script src="js/loja.js"></script>
+
+<script>
+    // ============================================================
+    //  TEMA
+    // ============================================================
+    document.getElementById('btn-theme').addEventListener('click', toggleTheme);
+
+    // ============================================================
+    //  BANNERS
+    // ============================================================
+    let banners = [];
+    let bannerIndex = 0;
+    let bannerInterval;
+
+    function carregarBanners() {
+        const salvos = JSON.parse(localStorage.getItem('nunes_banners_upload') || '[]');
+        if (salvos.length > 0) {
+            salvos.sort((a, b) => a.index - b.index);
+            banners = salvos.map(b => ({ imagem: b.data, titulo: 'Nunes Grife', subtitulo: 'Estilo e Sofisticação' }));
+        } else {
+            banners = [
+                { imagem: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=1600', titulo: 'Estilo e Sofisticação', subtitulo: 'Descubra a nova coleção' },
+                { imagem: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1600', titulo: 'Moda Masculina Premium', subtitulo: 'Qualidade que você confia' },
+                { imagem: 'https://images.unsplash.com/photo-1505022610485-0249ba5b3675?w=1600', titulo: 'Lançamentos Exclusivos', subtitulo: 'As melhores peças para você' },
+                { imagem: 'https://images.unsplash.com/photo-1534030347209-467a5b0ad3e6?w=1600', titulo: 'Calçados e Acessórios', subtitulo: 'Complete seu look' },
+                { imagem: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1600', titulo: 'Bonés e Camisas', subtitulo: 'Estilo urbano' },
+                { imagem: 'https://images.unsplash.com/photo-1618886614638-80e3c103d31a?w=1600', titulo: 'Nunes Grife', subtitulo: 'Estilo • Sofisticação • Confiança' }
+            ];
+        }
+        renderizarBanners();
+    }
+
+    function renderizarBanners() {
+        const track = document.getElementById('banner-track');
+        const indicators = document.getElementById('banner-indicators');
+        track.innerHTML = banners.map((b, i) => `
+            <div class="banner-slide" style="background-image: url('${b.imagem}')">
+                <div class="banner-overlay"></div>
+                <div class="absolute inset-0 flex items-center justify-center px-4">
+                    <div class="text-center text-white max-w-2xl animate-fade-in">
+                        <span class="text-dourado font-bold tracking-widest text-xs uppercase bg-nunes/60 px-3 py-1 rounded-full border border-dourado/30">Destaque</span>
+                        <h2 class="text-3xl md:text-5xl font-bold mt-4 font-elegante text-gold-gradient">${b.titulo}</h2>
+                        <p class="text-sm md:text-lg mt-2 text-gray-200">${b.subtitulo}</p>
+                        <a href="#roupas" class="inline-block btn-gold px-6 py-2 rounded-full text-xs uppercase tracking-wider mt-5">Ver Coleção</a>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        indicators.innerHTML = banners.map((_, i) => `
+            <span class="w-2.5 h-2.5 rounded-full cursor-pointer transition-all ${i === 0 ? 'bg-dourado scale-110' : 'bg-white/30'}" onclick="irParaBanner(${i})"></span>
+        `).join('');
+        bannerIndex = 0;
+        iniciarBannerAutomatico();
+    }
+
+    function irParaBanner(idx) { bannerIndex = idx; atualizarBanner(); }
+    function atualizarBanner() {
+        document.getElementById('banner-track').style.transform = `translateX(-${bannerIndex * 100}%)`;
+        document.querySelectorAll('#banner-indicators span').forEach((dot, i) => {
+            dot.className = `w-2.5 h-2.5 rounded-full cursor-pointer transition-all ${i === bannerIndex ? 'bg-dourado scale-110' : 'bg-white/30'}`;
+        });
+    }
+    function iniciarBannerAutomatico() {
+        if (bannerInterval) clearInterval(bannerInterval);
+        bannerInterval = setInterval(() => { bannerIndex = (bannerIndex + 1) % banners.length; atualizarBanner(); }, 6000);
+    }
+    document.getElementById('banner-prev').addEventListener('click', () => { bannerIndex = (bannerIndex - 1 + banners.length) % banners.length; atualizarBanner(); });
+    document.getElementById('banner-next').addEventListener('click', () => { bannerIndex = (bannerIndex + 1) % banners.length; atualizarBanner(); });
+
+    // ============================================================
+    //  PRODUTOS (Firebase com fallback localStorage)
+    // ============================================================
+    async function carregarProdutosFirebase() {
+        try {
+            if (typeof buscarProdutosFirebase === 'function') {
+                const produtosFirebase = await buscarProdutosFirebase();
+                if (produtosFirebase && produtosFirebase.length > 0) {
+                    window.produtos = produtosFirebase.map(p => ({
+                        id: p.id,
+                        nome: p.nome,
+                        preco: p.preco,
+                        imagens: p.imagens || [],
+                        categoria: p.categoria || 'roupas',
+                        subcategoria: p.subcategoria || '',
+                        descricao: p.descricao || '',
+                        ativo: p.ativo !== false
+                    }));
+                    renderizarProdutos();
+                    return;
+                }
+            }
+        } catch (error) {
+            console.warn('Firebase indisponível, usando localStorage:', error);
+        }
+        carregarProdutos();
+    }
+
+    // ============================================================
+    //  FILTRO DE CATEGORIAS
+    // ============================================================
+    function filtrarCategoria(cat, btn) {
+        document.querySelectorAll('.nav-cats button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (cat === 'todos') {
+            document.querySelectorAll('main section').forEach(s => s.style.display = '');
+        } else {
+            document.querySelectorAll('main section').forEach(s => {
+                s.style.display = s.id === cat ? '' : 'none';
+            });
+        }
+    }
+
+    // ============================================================
+    //  MENU MOBILE
+    // ============================================================
+    document.getElementById('btn-menu-mobile').addEventListener('click', () => {
+        document.getElementById('menu-mobile').classList.toggle('hidden');
+    });
+    document.querySelectorAll('#menu-mobile a').forEach(a => {
+        a.addEventListener('click', () => document.getElementById('menu-mobile').classList.add('hidden'));
+    });
+
+    // ============================================================
+    //  CARRINHO SIDEBAR
+    // ============================================================
+    const sidebar = document.getElementById('carrinho-sidebar');
+
+    document.getElementById('btn-abrir-carrinho').addEventListener('click', () => {
+        if (!window.carrinho || window.carrinho.length === 0) {
+            mostrarNotificacao('🛒 Carrinho vazio!');
+            return;
+        }
+        sidebar.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    });
+
+    document.getElementById('btn-fechar-carrinho').addEventListener('click', () => {
+        sidebar.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+        esconderCheckout();
+    });
+
+    document.getElementById('btn-continuar-comprando').addEventListener('click', () => {
+        sidebar.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+        esconderCheckout();
+    });
+
+    sidebar.addEventListener('click', (e) => {
+        if (e.target === sidebar) {
+            sidebar.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            esconderCheckout();
+        }
+    });
+
+    // ============================================================
+    //  FRETE
+    // ============================================================
+    document.querySelectorAll('input[name="tipo-entrega"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const blocoEnd = document.getElementById('bloco-endereco-entrega');
+            if (this.value === 'entrega') {
+                blocoEnd.classList.remove('hidden');
+                const config = JSON.parse(localStorage.getItem('nunes_config_loja') || '{"freteBase":10}');
+                const taxa = parseFloat(config.freteBase || 10);
+                document.getElementById('frete-valor-exibido').textContent = taxa > 0 ? `R$ ${taxa.toFixed(2)}` : 'Grátis';
+            } else {
+                blocoEnd.classList.add('hidden');
+            }
+            atualizarCarrinhoUI();
+        });
+    });
+
+    // ============================================================
+    //  CHECKOUT (sem prompt - formulário bonito)
+    // ============================================================
+    function esconderCheckout() {
+        document.getElementById('form-checkout-pedido').classList.remove('visible');
+        document.getElementById('form-checkout-pedido').style.display = 'none';
+        document.getElementById('bloco-botao-pedido').style.display = '';
+    }
+
+    document.getElementById('btn-finalizar-pedido').addEventListener('click', () => {
+        if (!window.carrinho || window.carrinho.length === 0) {
+            mostrarNotificacao('🛒 Carrinho vazio!');
+            return;
+        }
+        document.getElementById('bloco-botao-pedido').style.display = 'none';
+        const fc = document.getElementById('form-checkout-pedido');
+        fc.style.display = 'block';
+        fc.classList.add('visible');
+        document.getElementById('checkout-nome').focus();
+    });
+
+    document.getElementById('btn-cancelar-checkout').addEventListener('click', esconderCheckout);
+
+    document.getElementById('btn-confirmar-pedido').addEventListener('click', async () => {
+        const nome = document.getElementById('checkout-nome').value.trim();
+        const whats = document.getElementById('checkout-whats').value.trim();
+
+        if (!nome) { mostrarNotificacao('⚠️ Digite seu nome!', 'warning'); document.getElementById('checkout-nome').focus(); return; }
+        if (!whats || whats.length < 8) { mostrarNotificacao('⚠️ Digite um WhatsApp válido!', 'warning'); document.getElementById('checkout-whats').focus(); return; }
+
+        const metodo = document.querySelector('input[name="tipo-entrega"]:checked');
+        const entrega = metodo ? metodo.value : 'retirada';
+        const endereco = document.getElementById('input-endereco-cliente').value || 'Retirada na loja';
+
+        const subtotal = getTotalCarrinho();
+        let total = subtotal;
+        if (entrega === 'entrega') {
+            const config = JSON.parse(localStorage.getItem('nunes_config_loja') || '{"freteBase":10}');
+            total += parseFloat(config.freteBase || 0);
+        }
+
+        const lista = window.carrinho.map(item => `${item.quantidade}x ${item.nome} (R$ ${item.preco.toFixed(2)})`).join('\n');
+
+        // Salvar no Firebase se disponível
+        try {
+            if (typeof salvarClienteFirebase === 'function') {
+                await salvarClienteFirebase({ nome, whatsapp: whats, endereco });
+            }
+        } catch (e) { console.warn('Erro ao salvar cliente:', e); }
+
+        try {
+            if (typeof salvarPedidoFirebase === 'function') {
+                await salvarPedidoFirebase({
+                    cliente: nome, whatsapp: whats, endereco,
+                    produtos: window.carrinho.map(i => ({ nome: i.nome, preco: i.preco, quantidade: i.quantidade })),
+                    total, entrega
+                });
+            }
+        } catch (e) { console.warn('Erro ao salvar pedido:', e); }
+
+        const mensagem = `
+🛍️ *PEDIDO - NUNES GRIFE*
+━━━━━━━━━━━━━━━━━━━━
+
+👤 *Cliente:* ${nome}
+📱 *WhatsApp:* ${whats}
+📍 *Endereço:* ${endereco}
+
+📦 *PRODUTOS:*
+${lista}
+
+💵 *Subtotal:* R$ ${subtotal.toFixed(2)}
+🚚 *Entrega:* ${entrega === 'retirada' ? 'Retirada na Loja' : `Entrega — Frete: R$ ${(total - subtotal).toFixed(2)}`}
+💰 *TOTAL: R$ ${total.toFixed(2)}*
+
+━━━━━━━━━━━━━━━━━━━━
+✅ Aguardando confirmação.
+        `.trim();
+
+        const contatos = JSON.parse(localStorage.getItem('nunes_contatos') || '{}');
+        const numero = (contatos.wppVendas || '5538991500548').replace(/\D/g, '');
+        window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`, '_blank');
+
+        window.carrinho = [];
+        atualizarCarrinhoUI();
+        sidebar.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+        esconderCheckout();
+        mostrarNotificacao('✅ Pedido enviado pelo WhatsApp!');
+    });
+
+    // ============================================================
+    //  MAPA - Endereço real: Rua Antônio Martins Nº 205, Santos Reis, Montes Claros-MG
+    // ============================================================
+    function initMap() {
+        // Coordenadas da Rua Antônio Martins, Santos Reis, Montes Claros - MG
+        const lat = -16.7012;
+        const lng = -43.8705;
+
+        const map = L.map('loja-mapa', { zoomControl: true, scrollWheelZoom: false }).setView([lat, lng], 16);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>'
+        }).addTo(map);
+
+        const customIcon = L.divIcon({
+            html: `<div style="background:#D4AF37;color:#0a0a0a;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 12px rgba(0,0,0,0.4);border:2px solid #0a0a0a;">
+                        <i class="fa-solid fa-shirt"></i>
+                   </div>`,
+            className: '',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+        });
+
+        L.marker([lat, lng], { icon: customIcon })
+            .addTo(map)
+            .bindPopup('<b>👔 Nunes Grife</b><br>Rua Antônio Martins, 200 A<br>Santos Reis – Montes Claros MG')
+            .openPopup();
+    }
+
+    // ============================================================
+    //  INICIALIZAÇÃO
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', () => {
+        carregarTema();
+        carregarLogo();
+        carregarContatos();
+        carregarBanners();
+        carregarProdutosFirebase();
+        initMap();
+    });
+
+    // Atualização automática a cada 60 segundos
+    setInterval(() => {
+        carregarProdutosFirebase();
+        carregarBanners();
+        carregarLogo();
+        carregarContatos();
+    }, 60000);
+</script>
+</body>
+</html>
